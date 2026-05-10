@@ -886,6 +886,10 @@
 	
 	/*const API_URL = "http://localhost:3000/api";*/
 	const API_URL = "https://b8ca-2001-ee0-5127-2bc0-d177-a4f4-24c5-d56f.ngrok-free.app/api";
+	const commonHeaders = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': '69420' // Cái này để né lỗi 2503/ngrok warning
+	};
 
 	let vocabData = [];
 	let allProfiles = [];
@@ -902,9 +906,7 @@
 		try {
 			// Lấy Từ vựng
 			const resVocab = await fetch(`${API_URL}/vocab`,{
-    headers: {
-        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
-    }
+    headers: commonHeaders
 });
 			vocabData = await resVocab.json();
 			// Nếu DB rỗng, gán dữ liệu mặc định
@@ -917,9 +919,7 @@
 
 			// Lấy danh sách Học sinh & Bảng xếp hạng
 			const resProfiles = await fetch(`${API_URL}/profiles`,{
-    headers: {
-        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
-    }
+    headers: commonHeaders
 });
 			allProfiles = await resProfiles.json();
 			leaderboard = [...allProfiles]; // API đã sắp xếp sẵn theo số sao
@@ -979,8 +979,7 @@
 		try {
 			await fetch(`${API_URL}/profile`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 
-        'ngrok-skip-browser-warning': '69420' },
+				headers: commonHeaders,
 				body: JSON.stringify(userProfile)
 			});
 			updateLeaderboardData();
@@ -991,9 +990,7 @@
 	async function updateLeaderboardData() {
 		try {
 			const res = await fetch(`${API_URL}/profiles`,{
-    headers: {
-        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
-    }
+    headers: commonHeaders
 });
 			allProfiles = await res.json();
 			leaderboard = [...allProfiles];
@@ -1646,9 +1643,7 @@
 
 		try {
 			const res = await fetch(`${API_URL}/history?name=${encodeURIComponent(userProfile.name)}&school=${encodeURIComponent(userProfile.school)}`,{
-    headers: {
-        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
-    }
+    headers: commonHeaders
 });
 			const userHistory = await res.json();
 
