@@ -723,11 +723,77 @@
 		animation: hourglass-spin 2s ease-in-out infinite;
 		font-size: 1.2rem;
 	}
-    </style>
+    
+        /* AUTH & PROFILE STYLES */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f7f7f7; z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            width: 90%; max-width: 400px; background: white; border-radius: 30px;
+            padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e5e5e5;
+        }
+        .logo-icon-large {
+            background: #1cb0f6; color: white; width: 70px; height: 70px;
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 30px; margin: 0 auto 20px; box-shadow: 0 4px 0 #1899d6;
+        }
+        .auth-title { font-family: 'Lexend', sans-serif; color: #3c3c3c; margin-bottom: 25px; font-weight: 800; }
+        .auth-tabs { display: flex; background: #f0f0f0; border-radius: 15px; padding: 5px; margin-bottom: 20px; }
+        .auth-tab-btn { 
+            flex: 1; border: none; background: none; padding: 10px; 
+            font-family: 'Lexend', sans-serif; font-weight: 800; color: #aaa; cursor: pointer;
+        }
+        .auth-tab-btn.active { background: white; color: #1cb0f6; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .auth-input {
+            width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #e5e5e5;
+            border-radius: 15px; font-family: inherit; font-size: 1rem; box-sizing: border-box; outline: none;
+        }
+        .auth-input:focus { border-color: #1cb0f6; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .profile-item {
+            border: 2px solid #e5e5e5; border-bottom: 6px solid #e5e5e5;
+            padding: 15px; border-radius: 20px; cursor: pointer; transition: 0.1s;
+        }
+        .profile-item:active { transform: translateY(4px); border-bottom-width: 2px; }
+        .profile-avatar { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+        .profile-name { font-weight: 800; font-size: 0.9rem; color: #3c3c3c; }
+        .btn-back-auth { margin-top: 15px; background: none; border: none; color: #aaa; font-weight: 700; cursor: pointer; text-decoration: underline; }
+</style>
 </head>
 <body>
 
 <div class="app-container">
+        <!-- Giao diện Đăng nhập / Chọn Profile -->
+        <div id="auth-container" class="auth-overlay">
+            <!-- Bước 1: Login -->
+            <div id="login-section" class="auth-card">
+                <div class="logo-icon-large"><i class="fas fa-book"></i></div>
+                <h2 class="auth-title">Vocalens</h2>
+                <div class="auth-tabs">
+                    <button id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Đăng nhập</button>
+                    <button id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Đăng ký</button>
+                </div>
+                <div class="auth-form-group">
+                    <input type="text" id="auth-email" placeholder="Email hoặc Tên đăng nhập" class="auth-input">
+                    <input type="password" id="auth-password" placeholder="Mật khẩu" class="auth-input">
+                    <input type="password" id="auth-confirm-password" placeholder="Xác nhận mật khẩu" class="auth-input" style="display:none;">
+                    <button class="btn-check" style="width: 100%;" onclick="handleAuth()">Tiếp tục</button>
+                </div>
+            </div>
+
+            <!-- Bước 2: Chọn Profile -->
+            <div id="profile-selection-section" class="auth-card" style="display:none;">
+                <h2 class="auth-title">Ai đang học thế?</h2>
+                <div id="profile-list-grid" class="profile-grid"></div>
+                <button class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; margin-top: 10px;" onclick="addNewProfilePrompt()">
+                    <i class="fas fa-plus-circle"></i> Thêm hồ sơ
+                </button>
+                <button class="btn-back-auth" onclick="logoutAccount()">Đăng xuất</button>
+            </div>
+        </div>
+
     <div class="header-brand">
         <div class="brand-left">
             <div class="logo-icon"><i class="fas fa-book"></i></div>
@@ -885,7 +951,7 @@
 	
 	
 	/*const API_URL = "http://localhost:3000/api";*/
-	const API_URL = "https://a972-2001-ee0-5127-2bc0-d177-a4f4-24c5-d56f.ngrok-free.app/api";
+	const API_URL = "https://60fc-2001-ee0-5177-9a50-1d7f-413a-10cf-bd46.ngrok-free.app/api";
 	const commonHeaders = {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': '69420', // Cái này để né lỗi 2503/ngrok warning
@@ -2458,6 +2524,76 @@
 
 		recognition.start();
 	}
+
+    let profiles = JSON.parse(localStorage.getItem('vocalens_profiles')) || [
+        { name: "Người học 1", avatar: "🐱" },
+        { name: "Người học 2", avatar: "🦊" }
+    ];
+
+    function toggleAuthMode(mode) {
+        const isLogin = mode === 'login';
+        document.getElementById('tab-login').classList.toggle('active', isLogin);
+        document.getElementById('tab-register').classList.toggle('active', !isLogin);
+        document.getElementById('auth-confirm-password').style.display = isLogin ? 'none' : 'block';
+    }
+
+    async function handleAuth() {
+		const email = document.getElementById('auth-email').value;
+		const password = document.getElementById('auth-password').value;
+		
+		// Gọi API login xuống backend
+		const response = await fetch('http://localhost:3000/api/auth/login', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({ email, password })
+		});
+		
+		const data = await response.json();
+		
+		if (data.success) {
+			// Lưu thông tin user và hiển thị các profile trả về từ SQLite
+			currentAccount = data.user;
+			renderProfiles(data.profiles); 
+			document.getElementById('login-section').style.display = 'none';
+			document.getElementById('profile-selection-section').style.display = 'block';
+		} else {
+			alert(data.error);
+		}
+	}
+
+    function renderProfiles() {
+        const grid = document.getElementById('profile-list-grid');
+        grid.innerHTML = profiles.map(p => `
+            <div class="profile-item" onclick="selectProfile('${p.name}')">
+                <span class="profile-avatar">${p.avatar}</span>
+                <span class="profile-name">${p.name}</span>
+            </div>
+        `).join('');
+    }
+
+    function selectProfile(name) {
+        document.getElementById('auth-container').style.display = 'none';
+        Swal.fire({ title: 'Chào ' + name + '!', icon: 'success', timer: 1500, showConfirmButton: false });
+    }
+
+    function addNewProfilePrompt() {
+        Swal.fire({
+            title: 'Tên hồ sơ mới',
+            input: 'text',
+            showCancelButton: true
+        }).then(res => {
+            if(res.value) {
+                profiles.push({ name: res.value, avatar: "🐼" });
+                localStorage.setItem('vocalens_profiles', JSON.stringify(profiles));
+                renderProfiles();
+            }
+        });
+    }
+
+    function logoutAccount() {
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('profile-selection-section').style.display = 'none';
+    }
 </script>
 </body>
 </html>
