@@ -884,7 +884,7 @@
 	*/
 	
 	
-	/* const API_URL = "http://localhost:3000/api"; */
+	/*const API_URL = "http://localhost:3000/api";*/
 	const API_URL = "https://b8ca-2001-ee0-5127-2bc0-d177-a4f4-24c5-d56f.ngrok-free.app/api";
 
 	let vocabData = [];
@@ -901,7 +901,11 @@
 	async function initDatabase() {
 		try {
 			// Lấy Từ vựng
-			const resVocab = await fetch(`${API_URL}/vocab`);
+			const resVocab = await fetch(`${API_URL}/vocab`,{
+    headers: {
+        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
+    }
+});
 			vocabData = await resVocab.json();
 			// Nếu DB rỗng, gán dữ liệu mặc định
 			if(vocabData.length === 0) {
@@ -912,7 +916,11 @@
 			}
 
 			// Lấy danh sách Học sinh & Bảng xếp hạng
-			const resProfiles = await fetch(`${API_URL}/profiles`);
+			const resProfiles = await fetch(`${API_URL}/profiles`,{
+    headers: {
+        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
+    }
+});
 			allProfiles = await resProfiles.json();
 			leaderboard = [...allProfiles]; // API đã sắp xếp sẵn theo số sao
 
@@ -971,7 +979,8 @@
 		try {
 			await fetch(`${API_URL}/profile`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', 
+        'ngrok-skip-browser-warning': '69420' },
 				body: JSON.stringify(userProfile)
 			});
 			updateLeaderboardData();
@@ -981,7 +990,11 @@
 	/* CẬP NHẬT LẠI LEADERBOARD TỪ SERVER */
 	async function updateLeaderboardData() {
 		try {
-			const res = await fetch(`${API_URL}/profiles`);
+			const res = await fetch(`${API_URL}/profiles`,{
+    headers: {
+        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
+    }
+});
 			allProfiles = await res.json();
 			leaderboard = [...allProfiles];
 			if (document.getElementById("leaderboard-list")) renderLeaderboard();
@@ -1489,7 +1502,8 @@
 			// Đẩy lịch sử lên Server
 			fetch(`${API_URL}/history`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', 
+        'ngrok-skip-browser-warning': '69420' },
 				body: JSON.stringify({ 
 					name: userProfile.name, school: userProfile.school,
 					date: new Date().toLocaleString('vi-VN'), 
@@ -1631,7 +1645,11 @@
 		if (!userProfile) return;
 
 		try {
-			const res = await fetch(`${API_URL}/history?name=${encodeURIComponent(userProfile.name)}&school=${encodeURIComponent(userProfile.school)}`);
+			const res = await fetch(`${API_URL}/history?name=${encodeURIComponent(userProfile.name)}&school=${encodeURIComponent(userProfile.school)}`,{
+    headers: {
+        "ngrok-skip-browser-warning": "69420" // Thêm dòng này để ngrok cho phép lấy dữ liệu
+    }
+});
 			const userHistory = await res.json();
 
 			container.innerHTML = userHistory.length === 0 ? 
@@ -1680,7 +1698,8 @@
 			if (result.isConfirmed) {
 				await fetch(`${API_URL}/history`, {
 					method: 'DELETE',
-					headers: { 'Content-Type': 'application/json' },
+					headers: { 'Content-Type': 'application/json', 
+        'ngrok-skip-browser-warning': '69420' },
 					body: JSON.stringify({ name: userProfile.name, school: userProfile.school })
 				});
 				renderHistory();
@@ -2094,7 +2113,8 @@
 			try {
 				await fetch(`${API_URL}/vocab/bulk`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers: { 'Content-Type': 'application/json', 
+        'ngrok-skip-browser-warning': '69420' },
 					body: JSON.stringify(newVocab)
 				});
 				vocabData = newVocab;
