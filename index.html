@@ -889,6 +889,8 @@
 	const commonHeaders = {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': '69420', // Cái này để né lỗi 2503/ngrok warning
+	'Cache-Control': 'no-cache', // Ép trình duyệt không dùng dữ liệu cũ
+    'Pragma': 'no-cache'
 	};
 
 	let vocabData = [];
@@ -999,9 +1001,22 @@
 	}
 	
 	/* KIỂM TRA ĐĂNG NHẬP / CHỌN PROFILE */
-    async function checkUser() {
-		allProfiles = JSON.parse(localStorage.getItem("allProfiles")) || [];
+    async function checkUser() {		
+		
+		// Nếu allProfiles đã có dữ liệu (từ DB) thì dùng luôn, 
+		// nếu chưa có (null hoặc rỗng) mới tìm trong LocalStorage.
+		if (!window.allProfiles || window.allProfiles.length === 0) {
+			allProfiles = JSON.parse(localStorage.getItem("allProfiles")) || [];
+		}
+
+		// Lấy profile đang đăng nhập
 		const backupProfile = userProfile || JSON.parse(localStorage.getItem("userProfile"));
+		
+		// Nếu không có ai đăng nhập và cũng không có danh sách nào cả -> Đăng ký mới
+		if (!backupProfile && allProfiles.length === 0) {
+			await showRegistration();
+			return;
+		}
 		
 		// Chuyển profile hiện tại sang JSON để so sánh chính xác
 		const backupStr = JSON.stringify(backupProfile);
