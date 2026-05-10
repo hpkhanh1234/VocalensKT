@@ -1005,7 +1005,7 @@
 		
 		// Nếu allProfiles đã có dữ liệu (từ DB) thì dùng luôn, 
 		// nếu chưa có (null hoặc rỗng) mới tìm trong LocalStorage.
-		if (!window.allProfiles || window.allProfiles.length === 0) {
+		if (allProfiles.length === 0) {
 			allProfiles = JSON.parse(localStorage.getItem("allProfiles")) || [];
 		}
 
