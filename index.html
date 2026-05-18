@@ -1202,7 +1202,7 @@
             const currentUserId = localStorage.getItem('userId');
 
             // 1. GỌI API LƯU XUỐNG DATABASE BACKEND
-            const response = await fetch(`${API_URL}/auth/create-profile`, {
+            const response = await fetch(`${API_URL}/profiles`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
