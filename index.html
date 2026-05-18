@@ -2529,75 +2529,82 @@
         { name: "Người học 2", avatar: "🦊" }
     ];
 
-    function toggleAuthMode(mode) {
-	    const tabLogin = document.getElementById('tab-login');
-	    const tabRegister = document.getElementById('tab-register');
-	    const confirmPasswordInput = document.getElementById('auth-confirm-password');
-	    const btnLogin = document.getElementById('btn-submit-login');
-	    const btnRegister = document.getElementById('btn-submit-register');
-	
-	    if (mode === 'register') {
-	        tabLogin.classList.remove('active');
-	        tabRegister.classList.add('active');
-	        confirmPasswordInput.style.display = 'block'; // Hiện ô nhập lại mật khẩu
-	        
-	        btnLogin.style.display = 'none';              // Ẩn nút Đăng nhập
-	        btnRegister.style.display = 'block';          // Hiện nút Đăng ký
-	    } else {
-	        tabLogin.classList.add('active');
-	        tabRegister.classList.remove('active');
-	        confirmPasswordInput.style.display = 'none';  // Ẩn ô nhập lại mật khẩu
-	        
-	        btnLogin.style.display = 'block';             // Hiện nút Đăng nhập
-	        btnRegister.style.display = 'none';           // Ẩn nút Đăng ký
-	    }
-	}
+    // Đảm bảo biến API_URL đã được khai báo ở đầu phần script của bạn
+// const API_URL = "http://localhost:3000/api"; 
 
-	// CẤP NHẬT ĐỒNG BỘ ĐỂ FIX LỖI POPUP KHÔNG HIỂN THỊ
+function toggleAuthMode(mode) {
+    console.log("Chuyển chế độ Auth sang:", mode);
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const confirmInput = document.getElementById('auth-confirm-password');
+    const btnLogin = document.getElementById('btn-submit-login');
+    const btnRegister = document.getElementById('btn-submit-register');
+
+    if (mode === 'login') {
+        if(tabLogin) tabLogin.classList.add('active');
+        if(tabRegister) tabRegister.classList.remove('active');
+        if(confirmInput) confirmInput.style.display = 'none';
+        if(btnLogin) btnLogin.style.display = 'block';
+        if(btnRegister) btnRegister.style.display = 'none';
+    } else {
+        if(tabLogin) tabLogin.classList.remove('active');
+        if(tabRegister) tabRegister.classList.add('active');
+        if(confirmInput) confirmInput.style.display = 'block'; // Hiện ô Xác nhận mật khẩu
+        if(btnLogin) btnLogin.style.display = 'none';
+        if(btnRegister) btnRegister.style.display = 'block'; // Hiện nút Đăng ký
+    }
+}
+
 async function handleRegisterSubmit(e) {
+    // 1. Chặn trình duyệt reload trang
     if (e && typeof e.preventDefault === 'function') {
         e.preventDefault();
     }
+    
+    console.log("Nút Đăng ký đã được kích hoạt.");
 
-    const emailInput = document.getElementById('auth-email');
-    const passwordInput = document.getElementById('auth-password');
-    const confirmPasswordInput = document.getElementById('auth-confirm-password');
+    try {
+        const emailEl = document.getElementById('auth-email');
+        const passwordEl = document.getElementById('auth-password');
+        const confirmPasswordEl = document.getElementById('auth-confirm-password');
 
-    const email = emailInput ? emailInput.value.trim() : "";
-    const password = passwordInput ? passwordInput.value : "";
-    const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : "";
+        // Bẫy lỗi nếu không tìm thấy phần tử HTML
+        if (!emailEl || !passwordEl || !confirmPasswordEl) {
+            console.error("Không tìm thấy các phần tử ô nhập liệu trong DOM!");
+            return;
+        }
 
-    // 1. Kiểm tra trống dữ liệu đầu vào
-    if (!email || !password || !confirmPassword) {
-        // Sử dụng setTimeout để đẩy tiến trình vẽ SweetAlert2 ra sau, tránh bị xung đột đóng popup ngầm
-        setTimeout(() => {
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
+        const confirmPassword = confirmPasswordEl.value;
+
+        console.log("Dữ liệu thu thập được:", { email, password, confirmPassword });
+
+        // 2. Kiểm tra các ô trống dữ liệu
+        if (!email || !password || !confirmPassword) {
             Swal.fire({ 
                 title: 'Nhắc nhở', 
                 text: 'Vui lòng điền đầy đủ tất cả các trường dữ liệu!', 
                 icon: 'warning', 
                 confirmButtonColor: '#1cb0f6' 
             });
-        }, 50);
-        return;
-    }
+            return;
+        }
 
-    // 2. Kiểm tra mật khẩu trùng khớp
-    if (password !== confirmPassword) {
-        setTimeout(() => {
+        // 3. Kiểm tra mật khẩu nhập lại
+        if (password !== confirmPassword) {
             Swal.fire({ 
                 title: 'Lỗi xác nhận', 
                 text: 'Mật khẩu nhập lại không trùng khớp!', 
                 icon: 'error', 
                 confirmButtonColor: '#ff4b4b' 
             });
-        }, 50);
-        return;
-    }
+            return;
+        }
 
-    // Hiển thị trạng thái Loading
-    Swal.showLoading();
+        // Bật màn hình Loading chờ kết nối Backend
+        Swal.showLoading();
 
-    try {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 
@@ -2611,45 +2618,38 @@ async function handleRegisterSubmit(e) {
         let data = null;
         try {
             data = JSON.parse(resText);
-        } catch (err) {
-            console.error("Lỗi parse JSON phản hồi:", resText);
+        } catch (parseErr) {
+            console.error("Phản hồi từ Server không phải JSON hợp lệ:", resText);
         }
 
-        // Đóng trạng thái Loading trước khi hiển thị thông báo kết quả
-        Swal.close();
+        Swal.close(); // Đóng loading
 
         if (response.ok && data && data.success) {
             Swal.fire({
                 title: 'Đăng ký thành công! 🎉',
-                text: 'Tài khoản mới của bạn đã được khởi tạo thành công.',
+                text: 'Tài khoản mới của bạn đã được tạo.',
                 icon: 'success',
                 confirmButtonColor: '#58cc02',
                 confirmButtonText: 'ĐĂNG NHẬP NGAY'
             }).then(() => {
                 toggleAuthMode('login');
-                if(passwordInput) passwordInput.value = '';
-                if(confirmPasswordInput) confirmPasswordInput.value = '';
+                passwordEl.value = '';
+                confirmPasswordEl.value = '';
             });
         } else {
-            const errMsg = (data && data.error) ? data.error : 'Email này đã tồn tại hoặc thông tin đăng ký không hợp lệ!';
-            Swal.fire({ 
-                title: 'Đăng ký thất bại', 
-                text: errMsg, 
-                icon: 'error',
-                confirmButtonColor: '#ff4b4b' 
-            });
+            const errMsg = (data && data.error) ? data.error : 'Email này đã tồn tại trên hệ thống!';
+            Swal.fire({ title: 'Đăng ký thất bại', text: errMsg, icon: 'error', confirmButtonColor: '#ff4b4b' });
         }
+
     } catch (error) {
-        console.error("Lỗi kết nối register:", error);
+        console.error("Lỗi crash script trong handleRegisterSubmit:", error);
         Swal.close();
-        setTimeout(() => {
-            Swal.fire({ 
-                title: 'Lỗi kết nối', 
-                text: 'Không thể kết nối đến máy chủ API. Hãy chắc chắn Server Backend đang chạy!', 
-                icon: 'error',
-                confirmButtonColor: '#ff4b4b' 
-            });
-        }, 50);
+        Swal.fire({ 
+            title: 'Lỗi hệ thống', 
+            text: 'Có lỗi xảy ra trong quá trình xử lý script Frontend.', 
+            icon: 'error', 
+            confirmButtonColor: '#ff4b4b' 
+        });
     }
 }
 
@@ -2658,24 +2658,17 @@ async function handleLoginSubmit(e) {
         e.preventDefault();
     }
 
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value;
-
-    if (!email || !password) {
-        setTimeout(() => {
-            Swal.fire({ 
-                title: 'Nhắc nhở', 
-                text: 'Vui lòng nhập đầy đủ Email và Mật khẩu đăng nhập!', 
-                icon: 'warning', 
-                confirmButtonColor: '#1cb0f6' 
-            });
-        }, 50);
-        return;
-    }
-
-    Swal.showLoading();
-
     try {
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value;
+
+        if (!email || !password) {
+            Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng nhập đầy đủ email và mật khẩu!', icon: 'warning', confirmButtonColor: '#1cb0f6' });
+            return;
+        }
+
+        Swal.showLoading();
+
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 
@@ -2689,18 +2682,18 @@ async function handleLoginSubmit(e) {
         Swal.close();
 
         if (response.ok && data.success) {
-            // Đăng nhập thành công -> Xử lý lưu Session / Chuyển hướng
             Swal.fire({ title: 'Đăng nhập thành công!', icon: 'success', timer: 1500, showConfirmButton: false });
-            // Thực hiện tiếp logic tải Profile học sinh của bạn...
+            // Logic xử lý chuyển sang chọn Profile con của bạn...
+            if (typeof loadProfilesFromServer === 'function') {
+                loadProfilesFromServer(data.userId); 
+            }
         } else {
-            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai tài khoản hoặc mật khẩu!', icon: 'error', confirmButtonColor: '#ff4b4b' });
+            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai thông tin đăng nhập!', icon: 'error', confirmButtonColor: '#ff4b4b' });
         }
     } catch (error) {
-        console.error("Lỗi kết nối login:", error);
+        console.error("Lỗi handleLoginSubmit:", error);
         Swal.close();
-        setTimeout(() => {
-            Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể truyền dữ liệu đăng nhập tới máy chủ.', icon: 'error', confirmButtonColor: '#ff4b4b' });
-        }, 50);
+        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến máy chủ API.', icon: 'error', confirmButtonColor: '#ff4b4b' });
     }
 }
  
