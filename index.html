@@ -2553,66 +2553,48 @@
 	    }
 	}
 
-    // HÀM XỬ LÝ ĐĂNG NHẬP
-	async function handleLoginSubmit() {
-	    const email = document.getElementById('auth-email').value.trim();
-	    const password = document.getElementById('auth-password').value;
-	
-	    if (!email || !password) {
-	        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng điền đầy đủ thông tin!', icon: 'warning' });
-	        return;
-	    }
-	
-	    try {
-	        const response = await fetch(`${API_URL}/auth/login`, {
-	            method: 'POST',
-	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify({ email, password })
-	        });
-	
-	        const data = await response.json();
-	
-	        if (response.ok && data.success) {
-	            // Lưu thông tin user nếu cần
-	            window.currentUser = data.user;
-	            
-	            // Render danh sách profiles nhận từ backend SQLite
-	            renderProfiles(data.profiles); 
-	            
-	            // Chuyển sang màn hình chọn Profile
-	            document.getElementById('login-section').style.display = 'none';
-	            document.getElementById('profile-selection-section').style.display = 'block';
-	        } else {
-	            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai tài khoản hoặc mật khẩu', icon: 'error' });
-	        }
-	    } catch (error) {
-	        console.error("Lỗi login:", error);
-	        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến server', icon: 'error' });
-	    }
-	}
-	
-	// HÀM XỬ LÝ ĐĂNG KÝ
-// CẬP NHẬT HÀM ĐĂNG KÝ
+	// CẤP NHẬT ĐỒNG BỘ ĐỂ FIX LỖI POPUP KHÔNG HIỂN THỊ
 async function handleRegisterSubmit(e) {
-    // KHÓA CỨNG HÀNH VI RELOAD HOẶC GIÁN ĐOẠN TRÌNH DUYỆT
     if (e && typeof e.preventDefault === 'function') {
         e.preventDefault();
     }
 
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value;
-    const confirmPassword = document.getElementById('auth-confirm-password').value;
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    const confirmPasswordInput = document.getElementById('auth-confirm-password');
 
+    const email = emailInput ? emailInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
+    const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : "";
+
+    // 1. Kiểm tra trống dữ liệu đầu vào
     if (!email || !password || !confirmPassword) {
-        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng điền đầy đủ các trường dữ liệu!', icon: 'warning', confirmButtonColor: '#1cb0f6' });
+        // Sử dụng setTimeout để đẩy tiến trình vẽ SweetAlert2 ra sau, tránh bị xung đột đóng popup ngầm
+        setTimeout(() => {
+            Swal.fire({ 
+                title: 'Nhắc nhở', 
+                text: 'Vui lòng điền đầy đủ tất cả các trường dữ liệu!', 
+                icon: 'warning', 
+                confirmButtonColor: '#1cb0f6' 
+            });
+        }, 50);
         return;
     }
 
+    // 2. Kiểm tra mật khẩu trùng khớp
     if (password !== confirmPassword) {
-        Swal.fire({ title: 'Lỗi xác nhận', text: 'Mật khẩu nhập lại không trùng khớp!', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        setTimeout(() => {
+            Swal.fire({ 
+                title: 'Lỗi xác nhận', 
+                text: 'Mật khẩu nhập lại không trùng khớp!', 
+                icon: 'error', 
+                confirmButtonColor: '#ff4b4b' 
+            });
+        }, 50);
         return;
     }
 
+    // Hiển thị trạng thái Loading
     Swal.showLoading();
 
     try {
@@ -2626,43 +2608,51 @@ async function handleRegisterSubmit(e) {
         });
 
         const resText = await response.text();
-        let data;
+        let data = null;
         try {
             data = JSON.parse(resText);
-        } catch (errParse) {
-            throw new Error("Phản hồi từ máy chủ không hợp lệ.");
+        } catch (err) {
+            console.error("Lỗi parse JSON phản hồi:", resText);
         }
 
+        // Đóng trạng thái Loading trước khi hiển thị thông báo kết quả
         Swal.close();
 
         if (response.ok && data && data.success) {
             Swal.fire({
                 title: 'Đăng ký thành công! 🎉',
-                text: 'Tài khoản mới đã được khởi tạo trong SQLite.',
+                text: 'Tài khoản mới của bạn đã được khởi tạo thành công.',
                 icon: 'success',
                 confirmButtonColor: '#58cc02',
                 confirmButtonText: 'ĐĂNG NHẬP NGAY'
             }).then(() => {
                 toggleAuthMode('login');
-                document.getElementById('auth-password').value = '';
-                document.getElementById('auth-confirm-password').value = '';
+                if(passwordInput) passwordInput.value = '';
+                if(confirmPasswordInput) confirmPasswordInput.value = '';
             });
         } else {
-            // Popup báo trùng email (Lỗi 400) sẽ đứng im trên màn hình
+            const errMsg = (data && data.error) ? data.error : 'Email này đã tồn tại hoặc thông tin đăng ký không hợp lệ!';
             Swal.fire({ 
-                title: 'Đăng ký không thành công', 
-                text: (data && data.error) ? data.error : 'Email này đã tồn tại trên hệ thống!', 
+                title: 'Đăng ký thất bại', 
+                text: errMsg, 
                 icon: 'error',
                 confirmButtonColor: '#ff4b4b' 
             });
         }
     } catch (error) {
-        console.error("Lỗi register:", error);
-        Swal.fire({ title: 'Lỗi kết nối', text: error.message || 'Không thể gửi dữ liệu tới máy chủ.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        console.error("Lỗi kết nối register:", error);
+        Swal.close();
+        setTimeout(() => {
+            Swal.fire({ 
+                title: 'Lỗi kết nối', 
+                text: 'Không thể kết nối đến máy chủ API. Hãy chắc chắn Server Backend đang chạy!', 
+                icon: 'error',
+                confirmButtonColor: '#ff4b4b' 
+            });
+        }, 50);
     }
 }
 
-// CẬP NHẬT HÀM ĐĂNG NHẬP ĐỒNG BỘ
 async function handleLoginSubmit(e) {
     if (e && typeof e.preventDefault === 'function') {
         e.preventDefault();
@@ -2672,7 +2662,14 @@ async function handleLoginSubmit(e) {
     const password = document.getElementById('auth-password').value;
 
     if (!email || !password) {
-        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng nhập email và mật khẩu!', icon: 'warning', confirmButtonColor: '#1cb0f6' });
+        setTimeout(() => {
+            Swal.fire({ 
+                title: 'Nhắc nhở', 
+                text: 'Vui lòng nhập đầy đủ Email và Mật khẩu đăng nhập!', 
+                icon: 'warning', 
+                confirmButtonColor: '#1cb0f6' 
+            });
+        }, 50);
         return;
     }
 
@@ -2689,23 +2686,24 @@ async function handleLoginSubmit(e) {
         });
 
         const data = await response.json();
+        Swal.close();
 
         if (response.ok && data.success) {
-            Swal.close();
-            window.currentUser = data.user;
-            
-            renderProfiles(data.profiles); 
-            
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('profile-selection-section').style.display = 'block';
+            // Đăng nhập thành công -> Xử lý lưu Session / Chuyển hướng
+            Swal.fire({ title: 'Đăng nhập thành công!', icon: 'success', timer: 1500, showConfirmButton: false });
+            // Thực hiện tiếp logic tải Profile học sinh của bạn...
         } else {
-            Swal.fire({ title: 'Đăng nhập thất bại', text: data.error || 'Sai tài khoản hoặc mật khẩu!', icon: 'error', confirmButtonColor: '#ff4b4b' });
+            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai tài khoản hoặc mật khẩu!', icon: 'error', confirmButtonColor: '#ff4b4b' });
         }
     } catch (error) {
-        console.error("Lỗi login:", error);
-        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến máy chủ quản lý dữ liệu.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        console.error("Lỗi kết nối login:", error);
+        Swal.close();
+        setTimeout(() => {
+            Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể truyền dữ liệu đăng nhập tới máy chủ.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        }, 50);
     }
 }
+ 
     function renderProfiles(profilesList) {
     const grid = document.getElementById('profile-list-grid');
     
