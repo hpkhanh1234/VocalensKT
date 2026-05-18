@@ -2693,21 +2693,23 @@ async function handleRegisterSubmit(e) {
                 timer: 1500, 
                 showConfirmButton: false 
             }).then(() => {
-                // 1. Ẩn giao diện đăng nhập và hiển thị giao diện chọn Profile
-                const loginSection = document.getElementById('login-section');
-                const profileSection = document.getElementById('profile-selection-section');
+               // 1. Lấy danh sách profiles từ backend trả về (nếu không có thì mặc định mảng rỗng)
+                const profilesList = data.profiles || [];
                 
-                if (loginSection) loginSection.style.display = 'none';
-                if (profileSection) profileSection.style.display = 'block';
-
-                // 2. Gọi hàm nạp danh sách hồ sơ con lên màn hình (nếu Backend trả về data.profiles)
-                if (data.profiles) {
-                    // renderProfiles(data.profiles);
-					checkUser();
-                } else if (typeof loadProfilesFromServer === 'function') {
-                    // Phương án dự phòng nếu bạn gọi API riêng để lấy danh sách profile
-                    loadProfilesFromServer(data.userId);
+                // 2. Lưu vào localStorage đúng key "allProfiles" để hàm checkUser đọc được
+                localStorage.setItem("allProfiles", JSON.stringify(profilesList));
+                
+                // Cập nhật cả biến toàn cục allProfiles (nếu có khai báo phía trên)
+                if (typeof allProfiles !== 'undefined') {
+                    allProfiles = profilesList;
                 }
+                
+                // 3. Xóa profile cũ đang chọn (nếu có) để khi checkUser chạy sẽ hiện đầy đủ danh sách hồ sơ
+                localStorage.removeItem("userProfile");
+                if (typeof userProfile !== 'undefined') userProfile = null;
+
+                // 4. TẬN DỤNG HÀM CỦA BẠN: Gọi checkUser để kích hoạt popup Chọn tài khoản
+                checkUser();
             });
         } else {
             Swal.fire({ title: 'Thất bại', text: data.error || 'Sai thông tin đăng nhập!', icon: 'error', confirmButtonColor: '#ff4b4b' });
