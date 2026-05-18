@@ -1069,77 +1069,139 @@
 	
 	/* KIỂM TRA ĐĂNG NHẬP / CHỌN PROFILE */
     async function checkUser() {		
-		
-		// Nếu allProfiles đã có dữ liệu (từ DB) thì dùng luôn, 
-		// nếu chưa có (null hoặc rỗng) mới tìm trong LocalStorage.
-		if (allProfiles.length === 0) {
-			allProfiles = JSON.parse(localStorage.getItem("allProfiles")) || [];
-		}
+    // 1. Lấy userId của tài khoản cha đang đăng nhập để làm điều kiện lọc từ DB
+    const currentUserId = localStorage.getItem('userId');
 
-		// Lấy profile đang đăng nhập
-		const backupProfile = userProfile || JSON.parse(localStorage.getItem("userProfile"));
-		
-		// Nếu không có ai đăng nhập và cũng không có danh sách nào cả -> Đăng ký mới
-		if (!backupProfile && allProfiles.length === 0) {
-			await showRegistration();
-			return;
-		}
-		
-		// Chuyển profile hiện tại sang JSON để so sánh chính xác
-		const backupStr = JSON.stringify(backupProfile);
-		
-		// Lọc: Chỉ giữ lại những profile KHÔNG giống hệt profile hiện tại
-		allProfiles = allProfiles.filter(p => JSON.stringify(p) !== backupStr);
+    // Nếu chưa đăng nhập tài khoản gốc -> Yêu cầu hiện form Login/Register trước
+    if (!currentUserId) {
+        const authContainer = document.getElementById('auth-container');
+        const loginSection = document.getElementById('login-section');
+        if (authContainer) authContainer.style.display = 'block';
+        if (loginSection) loginSection.style.display = 'block';
+        return;
+    }
 
-		if (allProfiles.length > 0) {
-			const profileOptions = allProfiles.map((p, i) => {
-				// Xác định xem có phải admin không để đổi màu viền
-				const isAdmin = (p.school === 'KTadmin@123#' && p.class === 'KTadmin@123#');
-				
-				return `
-					<div onclick="selectExistingProfile(${i})" class="profile-card-item ${isAdmin ? 'admin-card' : ''}">
-						<div class="profile-card-avatar">
-							${p.avatar}
-							<!-- ${isAdmin ? '' : `<div style="position:absolute; bottom:0; background:#58cc02; color:white; font-size:10px; padding:2px 8px; border-radius:10px; border:2px solid white">Đang online</div>`} -->
-						</div>
-						<div class="profile-card-info">
-							<div class="profile-card-name">${p.name} ${isAdmin ? '<span style="background:#eceff1; padding:2px 8px; border-radius:8px; font-size:10px; color:#455a64">🔑 ADMIN</span>' : ''}</div>
-							<div class="profile-card-sub">${p.school} - ⭐ ${p.totalStars || 0}</div>
-						</div>
-						${!isAdmin ? '<div style="color:#ffc107; font-size:1.5rem">★</div>' : '<i class="fas fa-chevron-right" style="color:#ccc"></i>'}
-					</div>
-				`;
-			}).join('');
+    // 2. GỌI API LẤY DANH SÁCH PROFILE TRỰC TIẾP TỪ DATABASE VIA BACKEND
+    try {
+        // Tắt bớt log không cần thiết, gọi API đồng bộ dữ liệu mới nhất
+        const response = await fetch(`${API_URL}/auth/profiles?userId=${currentUserId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Đổ thẳng dữ liệu tươi từ Database vào biến allProfiles
+            allProfiles = data.profiles || [];
+        } else {
+            console.warn("Không thể tải danh sách profile từ DB, thử dùng local backup.");
+            allProfiles = JSON.parse(localStorage.getItem("allProfiles")) || [];
+        }
+    } catch (error) {
+        console.error("Lỗi kết nối API lấy profile:", error);
+        // Phương án dự phòng duy nhất khi mất mạng hoàn toàn
+        allProfiles = JSON.parse(localStorage.getItem("allProfiles")) || [];
+    }
 
-			await Swal.fire({
-				title: '<div class="account-title">Chọn tài khoản</div>',
-				html: `
-					<div style="max-height: 400px; overflow-y: auto; padding: 10px;">
-						${profileOptions}
-					</div>
-					<button onclick="showRegistration()" class="btn-add-student">
-						<i class="fas fa-plus-circle"></i> Thêm học sinh mới
-					</button>
-					<div style="margin-top:15px; font-size:0.8rem; color:#888; font-weight:600">Hãy bắt đầu hành trình của bạn!</div>
-				`,
-				showConfirmButton: false,
-				showCloseButton: true,
-				customClass: {
-					popup: 'custom-account-popup'
-				},
-				allowOutsideClick: true
-			});
-		} else {
-			await showRegistration();
-		}
-	}
-	window.selectExistingProfile = (index) => {
-		userProfile = allProfiles[index];
-		localStorage.setItem("userProfile", JSON.stringify(userProfile));
-		Swal.close();
-		renderMiniProfile();
-		//location.reload();
-	};
+    // Lấy profile hiện tại đang chọn chạy game (nếu có)
+    const backupProfile = userProfile || JSON.parse(localStorage.getItem("userProfile"));
+    
+    // Nếu không có profile nào trong DB và chưa có ai đăng nhập -> Bật form tạo mới
+    if (allProfiles.length === 0) {
+        await showRegistration();
+        return;
+    }
+    
+    // Nếu đã có một profile cụ thể đang được chọn hoạt động trước đó, bóc tách chuỗi để lọc
+    let backupStr = "";
+    if (backupProfile) {
+        // Đảm bảo bóc đúng lớp nếu dữ liệu trả về từ DB dạng lồng {profileData: {...}}
+        const cleanBackup = backupProfile.profileData ? backupProfile.profileData : backupProfile;
+        backupStr = JSON.stringify(cleanBackup);
+    }
+    
+    // Lọc danh sách: Xử lý an toàn để map giao diện không bị dính chữ "null"
+    const cleanedProfiles = allProfiles.map(p => p.profileData ? p.profileData : p);
+
+    if (cleanedProfiles.length > 0) {
+        const profileOptions = cleanedProfiles.map((p, i) => {
+            // Đảm bảo các giá trị không bao giờ bị dính null/undefined ra màn hình
+            const pName = p.name || "Học sinh";
+            const pSchool = p.school || "Chưa cập nhật";
+            const pClass = p.class || "Chưa rõ lớp";
+            const pAvatar = p.avatar || "🦊";
+            const pStars = p.totalStars !== undefined ? p.totalStars : 0;
+
+            // Xác định xem có phải admin không để đổi màu viền
+            const isAdmin = (pSchool === 'KTadmin@123#' && pClass === 'KTadmin@123#');
+            
+            return `
+                <div onclick="selectExistingProfile(${i})" class="profile-card-item ${isAdmin ? 'admin-card' : ''}">
+                    <div class="profile-card-avatar">
+                        ${pAvatar}
+                    </div>
+                    <div class="profile-card-info">
+                        <div class="profile-card-name">
+                            ${pName} ${isAdmin ? '<span style="background:#eceff1; padding:2px 8px; border-radius:8px; font-size:10px; color:#455a64">🔑 ADMIN</span>' : ''}
+                        </div>
+                        <div class="profile-card-sub">${pSchool} - Lớp ${pClass} - ⭐ ${pStars}</div>
+                    </div>
+                    ${!isAdmin ? '<div style="color:#ffc107; font-size:1.5rem">★</div>' : '<i class="fas fa-chevron-right" style="color:#ccc"></i>'}
+                </div>
+            `;
+        }).join('');
+
+        await Swal.fire({
+            title: '<div class="account-title">Chọn tài khoản</div>',
+            html: `
+                <div style="max-height: 400px; overflow-y: auto; padding: 10px;">
+                    ${profileOptions}
+                </div>
+                <button onclick="showRegistration()" class="btn-add-student">
+                    <i class="fas fa-plus-circle"></i> Thêm học sinh mới
+                </button>
+                <div style="margin-top:15px; font-size:0.8rem; color:#888; font-weight:600">Hãy bắt đầu hành trình của bạn!</div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'custom-account-popup'
+            },
+            allowOutsideClick: true
+        });
+    } else {
+        await showRegistration();
+    }
+}
+	function selectExistingProfile(index) {
+    const selected = allProfiles[index];
+    if (!selected) return;
+
+    // Bóc tách phẳng dữ liệu nếu backend trả về lồng cấu trúc
+    const exactProfile = selected.profileData ? selected.profileData : selected;
+
+    userProfile = exactProfile;
+    localStorage.setItem("userProfile", JSON.stringify(userProfile));
+
+    Swal.fire({
+        title: `Chào mừng ${userProfile.name}!`,
+        text: 'Chúc bạn học tập thật vui vẻ! 🚀',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+    }).then(() => {
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) {
+            authContainer.style.display = 'none'; // Ẩn màn đăng nhập, mở trang chủ game
+        }
+        Swal.close();
+        if (typeof renderMiniProfile === 'function') renderMiniProfile();
+    });
+}
 	
 	/* FORM ĐĂNG KÝ Profile HỌC SINH MỚI */
     async function showRegistration() {
