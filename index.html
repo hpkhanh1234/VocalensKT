@@ -767,32 +767,34 @@
 <div class="app-container">
         <!-- Giao diện Đăng nhập / Chọn Profile -->
         <div id="auth-container" class="auth-overlay">
-            <!-- Bước 1: Login -->
-            <div id="login-section" class="auth-card">
-                <div class="logo-icon-large"><i class="fas fa-book"></i></div>
-                <h2 class="auth-title">Vocalens</h2>
-                <div class="auth-tabs">
-                    <button id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Đăng nhập</button>
-                    <button id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Đăng ký</button>
-                </div>
-                <div class="auth-form-group">
-                    <input type="text" id="auth-email" placeholder="Email hoặc Tên đăng nhập" class="auth-input">
-                    <input type="password" id="auth-password" placeholder="Mật khẩu" class="auth-input">
-                    <input type="password" id="auth-confirm-password" placeholder="Xác nhận mật khẩu" class="auth-input" style="display:none;">
-                    <button class="btn-check" style="width: 100%;" onclick="handleAuth()">Tiếp tục</button>
-                </div>
-            </div>
-
-            <!-- Bước 2: Chọn Profile -->
-            <div id="profile-selection-section" class="auth-card" style="display:none;">
-                <h2 class="auth-title">Ai đang học thế?</h2>
-                <div id="profile-list-grid" class="profile-grid"></div>
-                <button class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; margin-top: 10px;" onclick="addNewProfilePrompt()">
-                    <i class="fas fa-plus-circle"></i> Thêm hồ sơ
-                </button>
-                <button class="btn-back-auth" onclick="logoutAccount()">Đăng xuất</button>
-            </div>
-        </div>
+	    <div id="login-section" class="auth-card">
+	        <div class="logo-icon-large"><i class="fas fa-book"></i></div>
+	        <h2 class="auth-title">Vocalens</h2>
+	        
+	        <div class="auth-tabs">
+	            <button id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Đăng nhập</button>
+	            <button id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Đăng ký</button>
+	        </div>
+	        
+	        <div class="auth-form-group">
+	            <input type="text" id="auth-email" placeholder="Email hoặc Tên đăng nhập" class="auth-input">
+	            <input type="password" id="auth-password" placeholder="Mật khẩu" class="auth-input">
+	            <input type="password" id="auth-confirm-password" placeholder="Xác nhận mật khẩu" class="auth-input" style="display:none;">
+	            
+	            <button id="btn-submit-login" class="btn-check" style="width: 100%;" onclick="handleLoginSubmit()">ĐĂNG NHẬP</button>
+	            <button id="btn-submit-register" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; display: none;" onclick="handleRegisterSubmit()">ĐĂNG KÝ NGAY</button>
+	        </div>
+	    </div>
+	
+	    <div id="profile-selection-section" class="auth-card" style="display:none;">
+	        <h2 class="auth-title">Ai đang học thế?</h2>
+	        <div id="profile-list-grid" class="profile-grid"></div>
+	        <button class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; margin-top: 10px;" onclick="addNewProfilePrompt()">
+	            <i class="fas fa-plus-circle"></i> Thêm hồ sơ
+	        </button>
+	        <button class="btn-back-auth" onclick="logoutAccount()">Đăng xuất</button>
+	    </div>
+	</div>
 
     <div class="header-brand">
         <div class="brand-left">
@@ -2529,35 +2531,110 @@
     ];
 
     function toggleAuthMode(mode) {
-        const isLogin = mode === 'login';
-        document.getElementById('tab-login').classList.toggle('active', isLogin);
-        document.getElementById('tab-register').classList.toggle('active', !isLogin);
-        document.getElementById('auth-confirm-password').style.display = isLogin ? 'none' : 'block';
-    }
+	    const tabLogin = document.getElementById('tab-login');
+	    const tabRegister = document.getElementById('tab-register');
+	    const confirmPasswordInput = document.getElementById('auth-confirm-password');
+	    const btnLogin = document.getElementById('btn-submit-login');
+	    const btnRegister = document.getElementById('btn-submit-register');
+	
+	    if (mode === 'register') {
+	        tabLogin.classList.remove('active');
+	        tabRegister.classList.add('active');
+	        confirmPasswordInput.style.display = 'block'; // Hiện ô nhập lại mật khẩu
+	        
+	        btnLogin.style.display = 'none';              // Ẩn nút Đăng nhập
+	        btnRegister.style.display = 'block';          // Hiện nút Đăng ký
+	    } else {
+	        tabLogin.classList.add('active');
+	        tabRegister.classList.remove('active');
+	        confirmPasswordInput.style.display = 'none';  // Ẩn ô nhập lại mật khẩu
+	        
+	        btnLogin.style.display = 'block';             // Hiện nút Đăng nhập
+	        btnRegister.style.display = 'none';           // Ẩn nút Đăng ký
+	    }
+	}
 
-    async function handleAuth() {
-		const email = document.getElementById('auth-email').value;
-		const password = document.getElementById('auth-password').value;
-		
-		// Gọi API login xuống backend
-		const response = await fetch('http://localhost:3000/api/auth/login', {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({ email, password })
-		});
-		
-		const data = await response.json();
-		
-		if (data.success) {
-			// Lưu thông tin user và hiển thị các profile trả về từ SQLite
-			currentAccount = data.user;
-			renderProfiles(data.profiles); 
-			Swal.fire({ title: 'Đăng nhập thành công!', icon: 'success', timer: 1500, showConfirmButton: false });
-			document.getElementById('login-section').style.display = 'none';
-			document.getElementById('profile-selection-section').style.display = 'block';
-		} else {
-			Swal.fire({ title: 'Thất bại', text: 'Tài khoản hoặc mật khẩu không chính xác', icon: 'error' });
-		}
+    // HÀM XỬ LÝ ĐĂNG NHẬP
+	async function handleLoginSubmit() {
+	    const email = document.getElementById('auth-email').value.trim();
+	    const password = document.getElementById('auth-password').value;
+	
+	    if (!email || !password) {
+	        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng điền đầy đủ thông tin!', icon: 'warning' });
+	        return;
+	    }
+	
+	    try {
+	        const response = await fetch('http://localhost:3000/api/auth/login', {
+	            method: 'POST',
+	            headers: { 'Content-Type': 'application/json' },
+	            body: JSON.stringify({ email, password })
+	        });
+	
+	        const data = await response.json();
+	
+	        if (response.ok && data.success) {
+	            // Lưu thông tin user nếu cần
+	            window.currentUser = data.user;
+	            
+	            // Render danh sách profiles nhận từ backend SQLite
+	            renderProfiles(data.profiles); 
+	            
+	            // Chuyển sang màn hình chọn Profile
+	            document.getElementById('login-section').style.display = 'none';
+	            document.getElementById('profile-selection-section').style.display = 'block';
+	        } else {
+	            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai tài khoản hoặc mật khẩu', icon: 'error' });
+	        }
+	    } catch (error) {
+	        console.error("Lỗi login:", error);
+	        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến server', icon: 'error' });
+	    }
+	}
+	
+	// HÀM XỬ LÝ ĐĂNG KÝ
+	async function handleRegisterSubmit() {
+	    const email = document.getElementById('auth-email').value.trim();
+	    const password = document.getElementById('auth-password').value;
+	    const confirmPassword = document.getElementById('auth-confirm-password').value;
+	
+	    if (!email || !password || !confirmPassword) {
+	        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng điền đầy đủ các trường dữ liệu!', icon: 'warning' });
+	        return;
+	    }
+	
+	    if (password !== confirmPassword) {
+	        Swal.fire({ title: 'Lỗi xác nhận', text: 'Mật khẩu nhập lại không trùng khớp!', icon: 'error' });
+	        return;
+	    }
+	
+	    try {
+	        const response = await fetch('http://localhost:3000/api/auth/register', {
+	            method: 'POST',
+	            headers: { 'Content-Type': 'application/json' },
+	            body: JSON.stringify({ email, password })
+	        });
+	
+	        const data = await response.json();
+	
+	        if (response.ok && data.success) {
+	            Swal.fire({
+	                title: 'Đăng ký thành công!',
+	                text: 'Tài khoản mới đã được tạo trong SQLite.',
+	                icon: 'success'
+	            }).then(() => {
+	                // Đăng ký xong tự chuyển về tab Đăng nhập để trải nghiệm mượt mà
+	                toggleAuthMode('login');
+	                document.getElementById('auth-password').value = '';
+	                document.getElementById('auth-confirm-password').value = '';
+	            });
+	        } else {
+	            Swal.fire({ title: 'Thất bại', text: data.error || 'Đăng ký không thành công', icon: 'error' });
+	        }
+	    } catch (error) {
+	        console.error("Lỗi register:", error);
+	        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối tới server SQLite', icon: 'error' });
+	    }
 	}
 
     function renderProfiles(profilesList) {
