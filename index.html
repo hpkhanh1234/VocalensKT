@@ -767,35 +767,34 @@
 <div class="app-container">
         <!-- Giao diện Đăng nhập / Chọn Profile -->
         <div id="auth-container" class="auth-overlay">
-	    <div id="login-section" class="auth-card">
-	        <div class="logo-icon-large"><i class="fas fa-book"></i></div>
-	        <h2 class="auth-title">Vocalens</h2>
-	        
-	        <div class="auth-tabs">
-	            <button id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Đăng nhập</button>
-	            <button id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Đăng ký</button>
-	        </div>
-	        
-	        <div class="auth-form-group">
-	            <input type="text" id="auth-email" placeholder="Email hoặc Tên đăng nhập" class="auth-input">
-	            <input type="password" id="auth-password" placeholder="Mật khẩu" class="auth-input">
-	            <input type="password" id="auth-confirm-password" placeholder="Xác nhận mật khẩu" class="auth-input" style="display:none;">
-	            
-	            <button id="btn-submit-login" class="btn-check" style="width: 100%;" onclick="handleLoginSubmit()">ĐĂNG NHẬP</button>
-	            <button id="btn-submit-register" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; display: none;" onclick="handleRegisterSubmit()">ĐĂNG KÝ NGAY</button>
-	        </div>
-	    </div>
-	
-	    <div id="profile-selection-section" class="auth-card" style="display:none;">
-	        <h2 class="auth-title">Ai đang học thế?</h2>
-	        <div id="profile-list-grid" class="profile-grid"></div>
-	        <button class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; margin-top: 10px;" onclick="addNewProfilePrompt()">
-	            <i class="fas fa-plus-circle"></i> Thêm hồ sơ
-	        </button>
-	        <button class="btn-back-auth" onclick="logoutAccount()">Đăng xuất</button>
-	    </div>
-	</div>
+    <div id="login-section" class="auth-card">
+        <div class="logo-icon-large"><i class="fas fa-book"></i></div>
+        <h2 class="auth-title">Vocalens</h2>
+        
+        <div class="auth-tabs">
+            <button type="button" id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Đăng nhập</button>
+            <button type="button" id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Đăng ký</button>
+        </div>
+        
+        <div class="auth-form-group">
+            <input type="text" id="auth-email" placeholder="Email hoặc Tên đăng nhập" class="auth-input">
+            <input type="password" id="auth-password" placeholder="Mật khẩu" class="auth-input">
+            <input type="password" id="auth-confirm-password" placeholder="Xác nhận mật khẩu" class="auth-input" style="display:none;">
+            
+            <button type="button" id="btn-submit-login" class="btn-check" style="width: 100%;" onclick="handleLoginSubmit(event)">ĐĂNG NHẬP</button>
+            <button type="button" id="btn-submit-register" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; display: none;" onclick="handleRegisterSubmit(event)">ĐĂNG KÝ NGAY</button>
+        </div>
+    </div>
 
+    <div id="profile-selection-section" class="auth-card" style="display:none;">
+        <h2 class="auth-title">Ai đang học thế?</h2>
+        <div id="profile-list-grid" class="profile-grid"></div>
+        <button type="button" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; margin-top: 10px;" onclick="addNewProfilePrompt()">
+            <i class="fas fa-plus-circle"></i> Thêm hồ sơ
+        </button>
+        <button type="button" class="btn-back-auth" onclick="logoutAccount()">Đăng xuất</button>
+    </div>
+</div>
     <div class="header-brand">
         <div class="brand-left">
             <div class="logo-icon"><i class="fas fa-book"></i></div>
@@ -2593,7 +2592,13 @@
 	}
 	
 	// HÀM XỬ LÝ ĐĂNG KÝ
-async function handleRegisterSubmit() {
+// CẬP NHẬT HÀM ĐĂNG KÝ
+async function handleRegisterSubmit(e) {
+    // KHÓA CỨNG HÀNH VI RELOAD HOẶC GIÁN ĐOẠN TRÌNH DUYỆT
+    if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+    }
+
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
     const confirmPassword = document.getElementById('auth-confirm-password').value;
@@ -2608,7 +2613,6 @@ async function handleRegisterSubmit() {
         return;
     }
 
-    // Hiển thị màn hình chờ xử lý
     Swal.showLoading();
 
     try {
@@ -2616,28 +2620,25 @@ async function handleRegisterSubmit() {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // Vượt qua trang chặn của ngrok
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify({ email, password })
         });
 
-        // Lấy dữ liệu dạng text thô trước để phòng ngừa lỗi cấu trúc chuỗi
         const resText = await response.text();
         let data;
         try {
             data = JSON.parse(resText);
-        } catch (e) {
-            throw new Error("Phản hồi từ Server không đúng định dạng dữ liệu (JSON).");
+        } catch (errParse) {
+            throw new Error("Phản hồi từ máy chủ không hợp lệ.");
         }
 
-        // Đóng trạng thái loading
         Swal.close();
 
         if (response.ok && data && data.success) {
-            // Đăng ký thành công mỹ mãn (Mã 200)
             Swal.fire({
                 title: 'Đăng ký thành công! 🎉',
-                text: 'Tài khoản mới của bạn đã được khởi tạo trong SQLite.',
+                text: 'Tài khoản mới đã được khởi tạo trong SQLite.',
                 icon: 'success',
                 confirmButtonColor: '#58cc02',
                 confirmButtonText: 'ĐĂNG NHẬP NGAY'
@@ -2647,22 +2648,62 @@ async function handleRegisterSubmit() {
                 document.getElementById('auth-confirm-password').value = '';
             });
         } else {
-            // Nhận diện và bắn lỗi 400 Bad Request (Ví dụ: trùng email) ra màn hình
+            // Popup báo trùng email (Lỗi 400) sẽ đứng im trên màn hình
             Swal.fire({ 
                 title: 'Đăng ký không thành công', 
-                text: (data && data.error) ? data.error : 'Email này đã tồn tại hoặc thông tin nhập không hợp lệ!', 
+                text: (data && data.error) ? data.error : 'Email này đã tồn tại trên hệ thống!', 
                 icon: 'error',
                 confirmButtonColor: '#ff4b4b' 
             });
         }
     } catch (error) {
         console.error("Lỗi register:", error);
-        Swal.fire({ 
-            title: 'Lỗi kết nối', 
-            text: error.message || 'Không thể truyền gói tin tới server SQLite.', 
-            icon: 'error',
-            confirmButtonColor: '#ff4b4b' 
+        Swal.fire({ title: 'Lỗi kết nối', text: error.message || 'Không thể gửi dữ liệu tới máy chủ.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+    }
+}
+
+// CẬP NHẬT HÀM ĐĂNG NHẬP ĐỒNG BỘ
+async function handleLoginSubmit(e) {
+    if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+    }
+
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+
+    if (!email || !password) {
+        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng nhập email và mật khẩu!', icon: 'warning', confirmButtonColor: '#1cb0f6' });
+        return;
+    }
+
+    Swal.showLoading();
+
+    try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ email, password })
         });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            Swal.close();
+            window.currentUser = data.user;
+            
+            renderProfiles(data.profiles); 
+            
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('profile-selection-section').style.display = 'block';
+        } else {
+            Swal.fire({ title: 'Đăng nhập thất bại', text: data.error || 'Sai tài khoản hoặc mật khẩu!', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        }
+    } catch (error) {
+        console.error("Lỗi login:", error);
+        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến máy chủ quản lý dữ liệu.', icon: 'error', confirmButtonColor: '#ff4b4b' });
     }
 }
     function renderProfiles(profilesList) {
