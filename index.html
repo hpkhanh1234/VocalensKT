@@ -760,6 +760,8 @@
         .profile-avatar { font-size: 2.5rem; margin-bottom: 10px; display: block; }
         .profile-name { font-weight: 800; font-size: 0.9rem; color: #3c3c3c; }
         .btn-back-auth { margin-top: 15px; background: none; border: none; color: #aaa; font-weight: 700; cursor: pointer; text-decoration: underline; }
+		/* Ép buộc tất cả các popup thông báo của SweetAlert2 phải nổi lên trên lớp Auth Overlay */
+		.swal2-container {z-index: 999999 !important;}
 </style>
 </head>
 <body>
