@@ -2593,49 +2593,63 @@
 	}
 	
 	// HÀM XỬ LÝ ĐĂNG KÝ
-	async function handleRegisterSubmit() {
-	    const email = document.getElementById('auth-email').value.trim();
-	    const password = document.getElementById('auth-password').value;
-	    const confirmPassword = document.getElementById('auth-confirm-password').value;
-	
-	    if (!email || !password || !confirmPassword) {
-	        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng điền đầy đủ các trường dữ liệu!', icon: 'warning' });
-	        return;
-	    }
-	
-	    if (password !== confirmPassword) {
-	        Swal.fire({ title: 'Lỗi xác nhận', text: 'Mật khẩu nhập lại không trùng khớp!', icon: 'error' });
-	        return;
-	    }
-	
-	    try {
-	        const response = await fetch(`${API_URL}/auth/register`, {
-	            method: 'POST',
-	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify({ email, password })
-	        });
-	
-	        const data = await response.json();
-	
-	        if (response.ok && data.success) {
-	            Swal.fire({
-	                title: 'Đăng ký thành công!',
-	                text: 'Tài khoản mới đã được tạo trong SQLite.',
-	                icon: 'success'
-	            }).then(() => {
-	                // Đăng ký xong tự chuyển về tab Đăng nhập để trải nghiệm mượt mà
-	                toggleAuthMode('login');
-	                document.getElementById('auth-password').value = '';
-	                document.getElementById('auth-confirm-password').value = '';
-	            });
-	        } else {
-	            Swal.fire({ title: 'Thất bại', text: data.error || 'Đăng ký không thành công', icon: 'error' });
-	        }
-	    } catch (error) {
-	        console.error("Lỗi register:", error);
-	        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối tới server SQLite', icon: 'error' });
-	    }
-	}
+async function handleRegisterSubmit() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const confirmPassword = document.getElementById('auth-confirm-password').value;
+
+    if (!email || !password || !confirmPassword) {
+        Swal.fire({ title: 'Nhắc nhở', text: 'Vui lòng điền đầy đủ các trường dữ liệu!', icon: 'warning', confirmButtonColor: '#1cb0f6' });
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        Swal.fire({ title: 'Lỗi xác nhận', text: 'Mật khẩu nhập lại không trùng khớp!', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        return;
+    }
+
+    // Hiển thị trạng thái loading chờ tạo tài khoản
+    Swal.showLoading();
+
+    try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // Đảm bảo không dính trang chặn của ngrok
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Trường hợp 200 OK và thành công
+            Swal.fire({
+                title: 'Đăng ký thành công! 🎉',
+                text: 'Tài khoản mới đã được tạo trong hệ thống.',
+                icon: 'success',
+                confirmButtonColor: '#58cc02',
+                confirmButtonText: 'ĐĂNG NHẬP NGAY'
+            }).then(() => {
+                toggleAuthMode('login');
+                document.getElementById('auth-password').value = '';
+                document.getElementById('auth-confirm-password').value = '';
+            });
+        } else {
+            // Trường hợp lỗi 400 (Trùng email) hoặc lỗi 500 từ Backend trả về
+            Swal.fire({ 
+                title: 'Đăng ký không thành công', 
+                text: data.error || 'Email này đã tồn tại hoặc dữ liệu không hợp lệ!', 
+                icon: 'error',
+                confirmButtonColor: '#ff4b4b' 
+            });
+        }
+    } catch (error) {
+        console.error("Lỗi register:", error);
+        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối tới máy chủ SQLite.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+    }
+}
 
     function renderProfiles(profilesList) {
     const grid = document.getElementById('profile-list-grid');
