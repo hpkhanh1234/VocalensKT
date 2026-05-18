@@ -2702,7 +2702,8 @@ async function handleRegisterSubmit(e) {
 
                 // 2. Gọi hàm nạp danh sách hồ sơ con lên màn hình (nếu Backend trả về data.profiles)
                 if (data.profiles) {
-                    renderProfiles(data.profiles);
+                    // renderProfiles(data.profiles);
+					checkUser();
                 } else if (typeof loadProfilesFromServer === 'function') {
                     // Phương án dự phòng nếu bạn gọi API riêng để lấy danh sách profile
                     loadProfilesFromServer(data.userId);
