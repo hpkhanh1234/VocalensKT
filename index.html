@@ -1141,41 +1141,133 @@
 		//location.reload();
 	};
 	
-	/* FORM ĐĂNG KÝ HỌC SINH MỚI */
+	/* FORM ĐĂNG KÝ Profile HỌC SINH MỚI */
     async function showRegistration() {
-        const avatars = ['🦊', '🐱', '🐼', '🦁', '🐶', '🦄', '🐰', '🐯'];
-        let selectedAvatar = '🦊';
-        const { value: formValues } = await safeSwal({
-            title: 'Đăng ký Profile Học sinh',
-            html: `
-                <div class="config-box">
-                    <div class="config-item"><label>Họ và tên</label><input id="reg-name" placeholder="Ví dụ: Nguyễn Văn A"></div>
-                    <div class="config-item"><label>Trường</label><input id="reg-school" placeholder="Tên trường học"></div>
-                    <div class="config-item"><label>Lớp</label><input id="reg-class" placeholder="Ví dụ: 6A1"></div>
-                    <div class="config-item"><label>Chọn ảnh đại diện</label>
-                        <div class="avatar-options">
-                            ${avatars.map(a => `<div class="avatar-opt ${a === selectedAvatar ? 'selected' : ''}" onclick="selectAvatar(this, '${a}')">${a}</div>`).join('')}
-                        </div>
+    const avatars = ['🦊', '🐱', '🐼', '🦁', '🐶', '🦄', '🐰', '🐯'];
+    let selectedAvatar = '🦊';
+    
+    // Khởi tạo avatar mặc định ban đầu
+    window.tempAvatar = selectedAvatar;
+
+    // Định nghĩa hàm đổi avatar trực tiếp gắn vào đối tượng window
+    window.selectAvatar = function(element, avatar) {
+        window.tempAvatar = avatar;
+        document.querySelectorAll('.avatar-opt').forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+    };
+
+    const { value: formValues } = await safeSwal({
+        title: 'Đăng ký Profile Học sinh',
+        html: `
+            <div class="config-box">
+                <div class="config-item"><label>Họ và tên</label><input id="reg-name" placeholder="Ví dụ: Nguyễn Văn A"></div>
+                <div class="config-item"><label>Trường</label><input id="reg-school" placeholder="Tên trường học"></div>
+                <div class="config-item"><label>Lớp</label><input id="reg-class" placeholder="Ví dụ: 6A1"></div>
+                <div class="config-item"><label>Chọn ảnh đại diện</label>
+                    <div class="avatar-options">
+                        ${avatars.map(a => `<div class="avatar-opt ${a === selectedAvatar ? 'selected' : ''}" onclick="selectAvatar(this, '${a}')">${a}</div>`).join('')}
                     </div>
                 </div>
-            `,
-            confirmButtonText: 'Bắt đầu ngay',
-            allowOutsideClick: false,
-            preConfirm: () => {
-                const name = document.getElementById('reg-name').value.trim();
-                const school = document.getElementById('reg-school').value.trim();
-                const uClass = document.getElementById('reg-class').value.trim();
-                if (!name || !school || !uClass) { Swal.showValidationMessage('Vui lòng nhập đầy đủ thông tin!'); return false; }
-                return { name, school, class: uClass, avatar: window.tempAvatar || selectedAvatar, totalStars: 0, streak: 1 };
+            </div>
+        `,
+        confirmButtonText: 'Bắt đầu ngay',
+        allowOutsideClick: false,
+        preConfirm: () => {
+            const name = document.getElementById('reg-name').value.trim();
+            const school = document.getElementById('reg-school').value.trim();
+            const uClass = document.getElementById('reg-class').value.trim();
+            
+            if (!name || !school || !uClass) { 
+                Swal.showValidationMessage('Vui lòng nhập đầy đủ thông tin!'); 
+                return false; 
             }
-        });
-        if (formValues) {
-            userProfile = formValues;
-            saveProfile();
-            renderMiniProfile();
-            safeSwal({ title: 'Chào mừng!', text: `Chúc ${userProfile.name} học tốt nhé!`, icon: 'success', timer: 1500, showConfirmButton: false });
+            
+            return { 
+                name, 
+                school, 
+                class: uClass, 
+                avatar: window.tempAvatar || selectedAvatar, 
+                totalStars: 0, 
+                streak: 1 
+            };
+        }
+    });
+
+    if (formValues) {
+        try {
+            // Hiển thị trạng thái đang xử lý lưu lên hệ thống
+            Swal.showLoading();
+
+            // Lấy userId hiện tại để biết profile này thuộc về tài khoản lớn nào
+            const currentUserId = localStorage.getItem('userId');
+
+            // 1. GỌI API LƯU XUỐNG DATABASE BACKEND
+            const response = await fetch(`${API_URL}/auth/create-profile`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({
+                    userId: currentUserId, // Gắn ID tài khoản cha
+                    profileData: formValues // Gửi toàn bộ thông tin học sinh lên DB
+                })
+            });
+
+            const data = await response.json();
+            Swal.close();
+
+            if (response.ok && data.success) {
+                // Định dạng lại object nhận về từ database nếu server trả về cấu trúc chuẩn hoặc dùng formValues ban đầu
+                const newProfile = data.profile || formValues;
+
+                // 2. Đồng bộ hóa dữ liệu xuống LocalStorage tạm thời để duy trì phiên làm việc
+                userProfile = newProfile;
+                localStorage.setItem("userProfile", JSON.stringify(userProfile));
+
+                if (typeof allProfiles === 'undefined' || !allProfiles) {
+                    allProfiles = [];
+                }
+                allProfiles.push(newProfile);
+                localStorage.setItem("allProfiles", JSON.stringify(allProfiles));
+
+                // 3. Cập nhật giao diện phụ (nếu có)
+                if (typeof saveProfile === 'function') saveProfile();
+                if (typeof renderMiniProfile === 'function') renderMiniProfile();
+
+                // 4. Vào thẳng trang chủ
+                safeSwal({ 
+                    title: 'Đăng ký thành công!', 
+                    text: `Chào mừng ${userProfile.name} đến với Vocalens! 🚀`, 
+                    icon: 'success', 
+                    timer: 1500, 
+                    showConfirmButton: false 
+                }).then(() => {
+                    const authContainer = document.getElementById('auth-container');
+                    if (authContainer) {
+                        authContainer.style.display = 'none';
+                    }
+                });
+
+            } else {
+                safeSwal({ 
+                    title: 'Lỗi hệ thống', 
+                    text: data.error || 'Không thể lưu hồ sơ xuống database. Vui lòng thử lại!', 
+                    icon: 'error' 
+                });
+            }
+
+        } catch (error) {
+            console.error("Lỗi kết nối API trong showRegistration:", error);
+            Swal.close();
+            safeSwal({ 
+                title: 'Mất kết nối', 
+                text: 'Không thể kết nối tới server để lưu dữ liệu. Hãy kiểm tra lại mạng!', 
+                icon: 'error' 
+            });
         }
     }
+}
 
 	/* Chọn ảnh đại diện */
     window.selectAvatar = (el, icon, isLocked = false) => {
