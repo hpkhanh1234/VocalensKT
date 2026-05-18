@@ -2608,7 +2608,7 @@ async function handleRegisterSubmit() {
         return;
     }
 
-    // Hiển thị trạng thái loading chờ tạo tài khoản
+    // Hiển thị màn hình chờ xử lý
     Swal.showLoading();
 
     try {
@@ -2616,18 +2616,28 @@ async function handleRegisterSubmit() {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // Đảm bảo không dính trang chặn của ngrok
+                'ngrok-skip-browser-warning': 'true' // Vượt qua trang chặn của ngrok
             },
             body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        // Lấy dữ liệu dạng text thô trước để phòng ngừa lỗi cấu trúc chuỗi
+        const resText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(resText);
+        } catch (e) {
+            throw new Error("Phản hồi từ Server không đúng định dạng dữ liệu (JSON).");
+        }
 
-        if (response.ok && data.success) {
-            // Trường hợp 200 OK và thành công
+        // Đóng trạng thái loading
+        Swal.close();
+
+        if (response.ok && data && data.success) {
+            // Đăng ký thành công mỹ mãn (Mã 200)
             Swal.fire({
                 title: 'Đăng ký thành công! 🎉',
-                text: 'Tài khoản mới đã được tạo trong hệ thống.',
+                text: 'Tài khoản mới của bạn đã được khởi tạo trong SQLite.',
                 icon: 'success',
                 confirmButtonColor: '#58cc02',
                 confirmButtonText: 'ĐĂNG NHẬP NGAY'
@@ -2637,20 +2647,24 @@ async function handleRegisterSubmit() {
                 document.getElementById('auth-confirm-password').value = '';
             });
         } else {
-            // Trường hợp lỗi 400 (Trùng email) hoặc lỗi 500 từ Backend trả về
+            // Nhận diện và bắn lỗi 400 Bad Request (Ví dụ: trùng email) ra màn hình
             Swal.fire({ 
                 title: 'Đăng ký không thành công', 
-                text: data.error || 'Email này đã tồn tại hoặc dữ liệu không hợp lệ!', 
+                text: (data && data.error) ? data.error : 'Email này đã tồn tại hoặc thông tin nhập không hợp lệ!', 
                 icon: 'error',
                 confirmButtonColor: '#ff4b4b' 
             });
         }
     } catch (error) {
         console.error("Lỗi register:", error);
-        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối tới máy chủ SQLite.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+        Swal.fire({ 
+            title: 'Lỗi kết nối', 
+            text: error.message || 'Không thể truyền gói tin tới server SQLite.', 
+            icon: 'error',
+            confirmButtonColor: '#ff4b4b' 
+        });
     }
 }
-
     function renderProfiles(profilesList) {
     const grid = document.getElementById('profile-list-grid');
     
