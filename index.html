@@ -2552,22 +2552,30 @@
 			// Lưu thông tin user và hiển thị các profile trả về từ SQLite
 			currentAccount = data.user;
 			renderProfiles(data.profiles); 
+			Swal.fire({ title: 'Đăng nhập thành công!', icon: 'success', timer: 1500, showConfirmButton: false });
 			document.getElementById('login-section').style.display = 'none';
 			document.getElementById('profile-selection-section').style.display = 'block';
 		} else {
-			alert(data.error);
+			Swal.fire({ title: 'Tài khoản hoặc mật khẩu không chính xác', text: data.error, icon: 'error' });
 		}
 	}
 
-    function renderProfiles() {
-        const grid = document.getElementById('profile-list-grid');
-        grid.innerHTML = profiles.map(p => `
-            <div class="profile-item" onclick="selectProfile('${p.name}')">
-                <span class="profile-avatar">${p.avatar}</span>
-                <span class="profile-name">${p.name}</span>
-            </div>
-        `).join('');
+    function renderProfiles(profilesList) {
+    const grid = document.getElementById('profile-list-grid');
+    
+    if (!profilesList || profilesList.length === 0) {
+        grid.innerHTML = `<p class="text-muted">Chưa có hồ sơ nào. Vui lòng tạo mới!</p>`;
+        return;
     }
+
+    // Duyệt qua mảng profilesList nhận từ Backend để hiển thị ra giao diện HTML
+    grid.innerHTML = profilesList.map(p => `
+        <div class="profile-item" onclick="selectProfile('${p.name}')">
+            <span class="profile-avatar">${p.avatar || '🐼'}</span>
+            <span class="profile-name">${p.name}</span>
+        </div>
+    `).join('');
+}
 
     function selectProfile(name) {
         document.getElementById('auth-container').style.display = 'none';
