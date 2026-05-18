@@ -1177,31 +1177,13 @@
         await showRegistration();
     }
 }
-	function selectExistingProfile(index) {
-    const selected = allProfiles[index];
-    if (!selected) return;
-
-    // Bóc tách phẳng dữ liệu nếu backend trả về lồng cấu trúc
-    const exactProfile = selected.profileData ? selected.profileData : selected;
-
-    userProfile = exactProfile;
-    localStorage.setItem("userProfile", JSON.stringify(userProfile));
-
-    Swal.fire({
-        title: `Chào mừng ${userProfile.name}!`,
-        text: 'Chúc bạn học tập thật vui vẻ! 🚀',
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-    }).then(() => {
-        const authContainer = document.getElementById('auth-container');
-        if (authContainer) {
-            authContainer.style.display = 'none'; // Ẩn màn đăng nhập, mở trang chủ game
-        }
-        Swal.close();
-        if (typeof renderMiniProfile === 'function') renderMiniProfile();
-    });
-}
+	window.selectExistingProfile = (index) => {
+		userProfile = allProfiles[index];
+		localStorage.setItem("userProfile", JSON.stringify(userProfile));
+		Swal.close();
+		renderMiniProfile();
+		//location.reload();
+	};
 	
 	/* FORM ĐĂNG KÝ Profile HỌC SINH MỚI */
     async function showRegistration() {
