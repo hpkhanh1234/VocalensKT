@@ -1088,15 +1088,50 @@
 
 	/* LƯU THÔNG TIN CÁ NHÂN LÊN SERVER */
 	async function saveProfile() {
-		localStorage.setItem("userProfile", JSON.stringify(userProfile)); // Giữ phiên cục bộ
-		try {
-			await fetch(`${API_URL}/profiles`, {
-				method: 'POST',
-				headers: commonHeaders,
-				body: JSON.stringify(userProfile)
-			});
-			updateLeaderboardData();
-		} catch (e) { console.error("Lỗi lưu profile:", e); }
+	    // 1. Lấy userId lớn (tài khoản cha) từ localStorage để xác thực khóa ngoại
+	    const currentUserId = localStorage.getItem('userId');
+	    
+	    // Kiểm tra nếu chưa chọn profile con nào hoặc mất profile thì không chạy
+	    if (!userProfile) {
+	        console.error("[SAVE PROFILE] Không có học sinh nào đang hoạt động để lưu!");
+	        return;
+	    }
+	
+	    // 2. Đồng bộ nhanh xuống bộ nhớ cục bộ trình duyệt đề phòng người dùng nhấn F5 (Refresh)
+	    localStorage.setItem("userProfile", JSON.stringify(userProfile)); 
+	
+	    // 3. TẠO CẤU TRÚC BODY CHUẨN: Gộp toàn bộ thông tin của bé và đính kèm userId của cha vào
+	    const updateData = {
+	        ...userProfile,          // Giữ lại đầy đủ: _id (hoặc id), name, stars, streak hiện tại của bé
+	        userId: currentUserId    // BẮT BUỘC: Đính kèm ID tài khoản cha để Backend không báo lỗi 400
+	    };
+	
+	    try {
+	        // Thực hiện gọi API cập nhật dữ liệu lên máy chủ
+	        const response = await fetch(`${API_URL}/profiles`, {
+	            method: 'POST', // Giữ nguyên POST theo đúng thiết kế router hiện tại của bạn
+	            headers: commonHeaders, // Đảm bảo commonHeaders đã chứa 'Content-Type': 'application/json'
+	            body: JSON.stringify(updateData) // Gửi đối tượng đã chuẩn hóa dữ liệu lên
+	        });
+	
+	        // Đọc dữ liệu phản hồi từ server để kiểm tra kết quả
+	        const data = await response.json();
+	
+	        if (response.ok) {
+	            console.log("[SAVE PROFILE SUCCESS] Đã cập nhật dữ liệu lên server thành công.");
+	            
+	            // Cập nhật lại Bảng xếp hạng (Leaderboard) sau khi lưu thành công tiến trình mới
+	            if (typeof updateLeaderboardData === 'function') {
+	                updateLeaderboardData();
+	            }
+	        } else {
+	            // Hiển thị chi tiết lỗi nếu Server từ chối xử lý
+	            console.error("[SAVE PROFILE ERROR] Server từ chối xử lý (400/500):", data.message || data);
+	        }
+	
+	    } catch (e) { 
+	        console.error("Lỗi kết nối khi cập nhật profile:", e); 
+	    }
 	}
 
 	/* CẬP NHẬT LẠI LEADERBOARD TỪ SERVER */
