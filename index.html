@@ -811,7 +811,7 @@
 			</button>
             <button class="btn-action btn-swing" onclick="startTutorial()" title="Hướng dẫn">?</button>
             <button class="btn-action btn-swing" onclick="openConfig()" title="Cấu hình"><i class="fas fa-cog"></i></button>
-        	<button class="btn-action btn-swing" onclick="logoutAccount()" title="Người dùng"><i class="fas fa-cog"></i></button>
+        	<button class="btn-action btn-swing" onclick="logoutAccount()" title="Người dùng"><i class="fas fa-id-card"></i></button>
 		</div>
 		<input type="file" id="fileInput" hidden accept=".xlsx, .xls">
     </div>
@@ -2921,7 +2921,6 @@ if (response.ok && data.success) {
 
     function logoutAccount() {
         document.getElementById('login-section').style.display = 'block';
-        document.getElementById('profile-selection-section').style.display = 'none';
     }
 </script>
 </body>
