@@ -1088,49 +1088,79 @@
 
 	/* LƯU THÔNG TIN CÁ NHÂN LÊN SERVER */
 	async function saveProfile() {
-	    // 1. Lấy userId lớn (tài khoản cha) từ localStorage để xác thực khóa ngoại
+	    // 1. Lấy userId lớn (tài khoản cha) từ localStorage
 	    const currentUserId = localStorage.getItem('userId');
 	    
-	    // Kiểm tra nếu chưa chọn profile con nào hoặc mất profile thì không chạy
+	    // Kiểm tra an toàn phòng hờ chưa chọn profile con nào
 	    if (!userProfile) {
 	        console.error("[SAVE PROFILE] Không có học sinh nào đang hoạt động để lưu!");
 	        return;
 	    }
 	
-	    // 2. Đồng bộ nhanh xuống bộ nhớ cục bộ trình duyệt đề phòng người dùng nhấn F5 (Refresh)
+	    // ĐỒNG BỘ TÊN BIẾN: Ép kiểu dữ liệu số cho số sao tích lũy theo chuẩn "totalStars" của SQLite
+	    userProfile.totalStars = Number(userProfile.stars) || Number(userProfile.totalStars) || 0;
+	    userProfile.streak = Number(userProfile.streak) || 1;
+	    userProfile.lastStudyDate = userProfile.lastStudyDate || 0;
+	
+	    // 2. Lưu nhanh xuống bộ nhớ cục bộ trình duyệt (Local Storage) để giữ trạng thái khi F5
 	    localStorage.setItem("userProfile", JSON.stringify(userProfile)); 
 	
-	    // 3. TẠO CẤU TRÚC BODY CHUẨN: Gộp toàn bộ thông tin của bé và đính kèm userId của cha vào
-	    const updateData = {
-	        ...userProfile,          // Giữ lại đầy đủ: _id (hoặc id), name, stars, streak hiện tại của bé
-	        userId: currentUserId    // BẮT BUỘC: Đính kèm ID tài khoản cha để Backend không báo lỗi 400
+	    // 3. ĐÓNG GÓI ĐÚNG CẤU TRÚC BACKEND YÊU CẦU: Bọc toàn bộ thông tin trong đối tượng "profileData"
+	    const wrapPayload = {
+	        userId: currentUserId,
+	        profileData: {
+	            id: userProfile.id || userProfile._id || null, // ID định danh của học sinh con
+	            name: userProfile.name,
+	            school: userProfile.school || "Trường Tiểu Học",
+	            class: userProfile.class || "5A",
+	            avatar: userProfile.avatar || '🦊',            // Đảm bảo avatar mới đổi được truyền đi
+	            totalStars: userProfile.totalStars,            // Sử dụng chính xác trường totalStars
+	            streak: userProfile.streak,
+	            lastStudyDate: userProfile.lastStudyDate
+	        }
 	    };
 	
+	    // Tự động phân tách Endpoint: Có ID -> Cập nhật (PUT), Chưa có ID -> Tạo mới (POST)
+	    // (Nếu Backend của bạn chỉ chạy duy nhất 1 đường POST /api/profiles cho cả 2 việc, bạn hãy đổi method sang 'POST' và url sang `${API_URL}/profiles`)
+	    const isUpdate = !!(userProfile.id || userProfile._id);
+	    const url = isUpdate ? `${API_URL}/profiles/${userProfile.id || userProfile._id}` : `${API_URL}/profiles`;
+	    const method = isUpdate ? 'PUT' : 'POST'; 
+	
+	    console.log(`[SAVE PROFILE] Đang gửi dữ liệu lên (${method}):`, wrapPayload);
+	
 	    try {
-	        // Thực hiện gọi API cập nhật dữ liệu lên máy chủ
-	        const response = await fetch(`${API_URL}/profiles`, {
-	            method: 'POST', // Giữ nguyên POST theo đúng thiết kế router hiện tại của bạn
-	            headers: commonHeaders, // Đảm bảo commonHeaders đã chứa 'Content-Type': 'application/json'
-	            body: JSON.stringify(updateData) // Gửi đối tượng đã chuẩn hóa dữ liệu lên
+	        // 4. Tiến hành gọi API
+	        const response = await fetch(url, {
+	            method: method, 
+	            headers: {
+	                ...commonHeaders,
+	                'Content-Type': 'application/json' // Đảm bảo luôn định dạng truyền dữ liệu JSON
+	            },
+	            body: JSON.stringify(wrapPayload) 
 	        });
 	
-	        // Đọc dữ liệu phản hồi từ server để kiểm tra kết quả
 	        const data = await response.json();
 	
-	        if (response.ok) {
-	            console.log("[SAVE PROFILE SUCCESS] Đã cập nhật dữ liệu lên server thành công.");
+	        if (response.ok && data.success) {
+	            console.log("[SAVE PROFILE SUCCESS] Máy chủ SQLite đã lưu tiến trình thành công!");
 	            
-	            // Cập nhật lại Bảng xếp hạng (Leaderboard) sau khi lưu thành công tiến trình mới
+	            // Nếu là tạo mới học sinh, gán ngược ID do máy chủ cấp phát vào biến cục bộ
+	            if (!isUpdate && data.profile && data.profile.id) {
+	                userProfile.id = data.profile.id;
+	                localStorage.setItem("userProfile", JSON.stringify(userProfile));
+	            }
+	
+	            // Gọi hàm cập nhật lại Bảng xếp hạng (Leaderboard) nếu có
 	            if (typeof updateLeaderboardData === 'function') {
 	                updateLeaderboardData();
 	            }
 	        } else {
-	            //  SỬA THÀNH ĐOẠN NÀY (Bỏ chuỗi nối để trình duyệt hiển thị rõ Object):
-				console.log("[SAVE PROFILE LỖI CHI TIẾT]:", data);
+	            // Log chi tiết thông báo từ Backend nếu gặp trục trặc lọc dữ liệu
+	            console.error("[SAVE PROFILE REJECTED] Server từ chối xử lý!");
+	            console.log("[CHI TIẾT LỖI TỪ SERVER]:", data.error || data);
 	        }
-	
 	    } catch (e) { 
-	        console.error("Lỗi kết nối khi cập nhật profile:", e); 
+	        console.error("Lỗi kết nối đường truyền mạng đến API Profiles:", e); 
 	    }
 	}
 
