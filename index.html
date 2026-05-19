@@ -733,8 +733,14 @@
         }
         .auth-card {
             width: 90%; max-width: 400px; background: white; border-radius: 30px;
-            padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 25px 30px !important; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border: 2px solid #e5e5e5;
+			/* KHÓA CỨNG CHIỀU CAO: Ép form Đăng ký và Đăng nhập cao bằng chặp nhau */
+		    height: 520px !important; 
+		    box-sizing: border-box;
+		    display: flex;
+		    flex-direction: column;
+		    justify-content: space-between; /* Đẩy chữ "Đã có tài khoản? Đăng nhập" xuống đáy bằng nhau */
         }
         .logo-icon-large {
             background: #1cb0f6; color: white; width: 70px; height: 70px;
@@ -749,10 +755,18 @@
         }
         .auth-tab-btn.active { background: white; color: #1cb0f6; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .auth-input {
-            width: 100%; padding: 15px !important; margin-bottom: 15px; border: 2px solid #e5e5e5;
-            border-radius: 15px; font-family: inherit; font-size: 1rem !important; box-sizing: border-box; outline: none;
-			text-align: left !important;
-        }
+		    width: 100%; 
+		    padding: 12px 15px !important; /* Thu nhỏ padding dọc từ 15px xuống 12px để nhét vừa 3 ô */
+		    margin-bottom: 12px !important; /* Khoảng cách vừa phải giữa các ô */
+		    border: 2px solid #e5e5e5;
+		    border-radius: 15px; 
+		    font-family: inherit; 
+		    font-size: 1rem !important; 
+		    box-sizing: border-box; 
+		    outline: none;
+		    text-align: left !important;
+		    height: 48px !important; /* Cố định chiều cao các ô input */
+		}
         .auth-input:focus { border-color: #1cb0f6; }
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .profile-item {
