@@ -767,47 +767,49 @@
 <body>
 
 <div class="app-container">
-        <!-- Giao diện Đăng nhập / Chọn Profile -->
-        <div id="auth-container" class="auth-overlay">
+    <!-- Giao diện Đăng nhập / Chọn Profile -->
+    <div id="auth-container" class="auth-overlay">
 		<div id="login-section" class="auth-box">
-    <div class="auth-header">
-        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Đăng nhập</div>
-        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Đăng ký</div>
-    </div>
-    
-    <div class="auth-body">
-        <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="auth-email" placeholder="Email của phụ huynh">
-        </div>
-        
-        <div class="input-group" style="position: relative;">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="auth-password" placeholder="Mật khẩu" style="padding-right: 40px;">
-            <i class="fas fa-eye" id="toggle-password" onclick="togglePasswordVisibility('auth-password', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; left: auto; width: auto;"></i>
-        </div>
-        
-        <div class="input-group" id="confirm-password-group" style="display: none; position: relative;">
-            <i class="fas fa-check-double"></i>
-            <input type="password" id="auth-confirm-password" placeholder="Nhập lại mật khẩu" style="padding-right: 40px;">
-            <i class="fas fa-eye" id="toggle-confirm-password" onclick="togglePasswordVisibility('auth-confirm-password', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; left: auto; width: auto;"></i>
-        </div>
-
-        <div class="auth-options" id="remember-me-container" style="display: flex; align-items: center; justify-content: flex-start; margin: -5px 0 15px 5px; font-size: 0.9rem; color: #666;">
-            <input type="checkbox" id="auth-remember" style="margin-right: 8px; cursor: pointer; width: 16px; height: 16px;">
-            <label for="auth-remember" style="cursor: pointer; user-select: none;">Ghi nhớ mật khẩu</label>
-        </div>
-
-        <button class="btn-auth" id="btn-submit-login" onclick="handleLoginSubmit()">Đăng nhập ngay</button>
-        <button class="btn-auth" id="btn-submit-register" onclick="handleRegisterSubmit()" style="display: none;">Tạo tài khoản</button>
-        
-        <div class="auth-footer-redirect" style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: #555;">
-            <span id="redirect-text">Chưa có tài khoản?</span> 
-            <a href="javascript:void(0)" id="redirect-link" onclick="toggleAuthMode()" style="color: #1cb0f6; font-weight: bold; text-decoration: none; margin-left: 5px;">Đăng ký ngay</a>
-        </div>
-    </div>
-</div>
-</div>
+		    <div class="auth-header">
+		        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Đăng nhập</div>
+		        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Đăng ký</div>
+		    </div>
+		    
+		    <div class="auth-body">
+		        <div class="input-group">
+		            <i class="fas fa-envelope"></i>
+		            <input type="email" id="auth-email" placeholder="Email của phụ huynh">
+		        </div>
+		        
+		        <div class="input-group" style="position: relative !important;">
+		            <i class="fas fa-lock"></i>
+		            <input type="password" id="auth-password" placeholder="Mật khẩu" style="width: 100%; padding-right: 45px !important; box-sizing: border-box;">
+		            <i class="fas fa-eye" id="toggle-password" onclick="togglePasswordVisibility('auth-password', this)" 
+		               style="position: absolute !important; right: 15px !important; left: auto !important; top: 50% !important; transform: translateY(-50%) !important; cursor: pointer !important; color: #aaa; z-index: 10; width: auto !important;"></i>
+		        </div>
+		        
+		        <div class="input-group" id="confirm-password-group" style="display: none; position: relative !important;">
+		            <i class="fas fa-check-double"></i>
+		            <input type="password" id="auth-confirm-password" placeholder="Nhập lại mật khẩu" style="width: 100%; padding-right: 45px !important; box-sizing: border-box;">
+		            <i class="fas fa-eye" id="toggle-confirm-password" onclick="togglePasswordVisibility('auth-confirm-password', this)" 
+		               style="position: absolute !important; right: 15px !important; left: auto !important; top: 50% !important; transform: translateY(-50%) !important; cursor: pointer !important; color: #aaa; z-index: 10; width: auto !important;"></i>
+		        </div>
+		
+		        <div class="auth-options" id="remember-me-container" style="display: flex; align-items: center; justify-content: flex-start; margin: 5px 0 15px 5px; font-size: 0.9rem; color: #666;">
+		            <input type="checkbox" id="auth-remember" style="margin-right: 8px; cursor: pointer; width: 16px; height: 16px;">
+		            <label for="auth-remember" style="cursor: pointer; user-select: none;">Ghi nhớ mật khẩu</label>
+		        </div>
+		
+		        <button class="btn-auth" id="btn-submit-login" onclick="handleLoginSubmit()">Đăng nhập ngay</button>
+		        <button class="btn-auth" id="btn-submit-register" onclick="handleRegisterSubmit()" style="display: none;">Tạo tài khoản</button>
+		        
+		        <div class="auth-footer-redirect" style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: #555;">
+		            <span id="redirect-text">Chưa có tài khoản?</span> 
+		            <a href="javascript:void(0)" id="redirect-link" onclick="toggleAuthMode()" style="color: #1cb0f6; font-weight: bold; text-decoration: none; margin-left: 5px;">Đăng ký ngay</a>
+		        </div>
+		    </div>
+		</div>
+	</div>
     <div class="header-brand">
         <div class="brand-left">
             <div class="logo-icon"><i class="fas fa-book"></i></div>
