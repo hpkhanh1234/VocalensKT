@@ -1125,8 +1125,8 @@
 	                updateLeaderboardData();
 	            }
 	        } else {
-	            // Hiển thị chi tiết lỗi nếu Server từ chối xử lý
-	            console.error("[SAVE PROFILE ERROR] Server từ chối xử lý (400/500):", data.message || data);
+	            //  SỬA THÀNH ĐOẠN NÀY (Bỏ chuỗi nối để trình duyệt hiển thị rõ Object):
+				console.log("[SAVE PROFILE LỖI CHI TIẾT]:", data);
 	        }
 	
 	    } catch (e) { 
