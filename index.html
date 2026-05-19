@@ -3042,27 +3042,44 @@ async function handleRegisterSubmit(e) {
 	        Swal.close();
 	    }
 	
-	    // 2. Xóa sạch toàn bộ phiên dữ liệu đã lưu trong LocalStorage
+	    // 2. Chỉ xóa phiên làm việc của bé học, GIỮ LẠI thông tin "Ghi nhớ mật khẩu" của cha mẹ
 	    localStorage.removeItem('userId');
 	    localStorage.removeItem('userProfile');
 	    localStorage.removeItem('allProfiles');
 	
 	    // 3. Khởi tạo lại các biến trạng thái Javascript toàn cục về mặc định
-	    if (typeof userProfile !== 'undefined') userProfile = null;
-	    if (typeof allProfiles !== 'undefined') allProfiles = [];
-	
-	    // 4. Reset các ô dữ liệu nhập trong Form về trống
-	    const emailInput = document.getElementById('auth-email');
-	    const passwordInput = document.getElementById('auth-password');
-	    const confirmPasswordInput = document.getElementById('auth-confirm-password');
-	    if (emailInput) emailInput.value = '';
-	    if (passwordInput) passwordInput.value = '';
-	    if (confirmPasswordInput) {
-	        confirmPasswordInput.value = '';
-	        confirmPasswordInput.style.display = 'none'; // Ẩn ô nhập lại mật khẩu
+	    if (typeof userProfile !== 'undefined') {
+	        userProfile = null;
+	    }
+	    if (typeof allProfiles !== 'undefined') {
+	        allProfiles = [];
 	    }
 	
-	    // Đưa các nút bấm và Tab lựa chọn về trạng thái Đăng nhập mặc định
+	    // 4. KIỂM TRA GHI NHỚ: Nếu có lưu mật khẩu thì điền vào, nếu không mới xóa trắng
+	    const isRemembered = localStorage.getItem('vocalens_remember_me') === 'true';
+	    const emailInput = document.getElementById('auth-email');
+	    const passwordInput = document.getElementById('auth-password');
+	    const confirmPasswordWrapper = document.getElementById('confirm-password-wrapper');
+	    const confirmInput = document.getElementById('auth-confirm-password');
+	
+	    if (isRemembered) {
+	        // Nếu có tích chọn "Ghi nhớ mật khẩu" -> Giữ lại pass và email cũ trên form
+	        if (emailInput) emailInput.value = localStorage.getItem('vocalens_remember_email') || '';
+	        if (passwordInput) passwordInput.value = localStorage.getItem('vocalens_remember_password') || '';
+	        
+	        const remCheck = document.getElementById('auth-remember');
+	        if (remCheck) remCheck.checked = true;
+	    } else {
+	        // Nếu người dùng không tích chọn "Ghi nhớ" trước đó -> Tiến hành xóa sạch
+	        if (emailInput) emailInput.value = '';
+	        if (passwordInput) passwordInput.value = '';
+	    }
+	
+	    // Luôn luôn xóa trắng ô Xác nhận mật khẩu của form Đăng ký (vì mục đích bảo mật)
+	    if (confirmInput) confirmInput.value = '';
+	    if (confirmPasswordWrapper) confirmPasswordWrapper.style.display = 'none';
+	
+	    // 5. Reset các nút bấm và Tab lựa chọn về trạng thái Đăng nhập mặc định
 	    const btnSubmitLogin = document.getElementById('btn-submit-login');
 	    const btnSubmitRegister = document.getElementById('btn-submit-register');
 	    const tabLogin = document.getElementById('tab-login');
@@ -3073,24 +3090,22 @@ async function handleRegisterSubmit(e) {
 	    if (tabLogin) tabLogin.classList.add('active');
 	    if (tabRegister) tabRegister.classList.remove('active');
 	
-	    // 5. ĐỒNG BỘ GIAO DIỆN (Quan trọng nhất để sửa lỗi mất hình):
+	    // 6. ĐỒNG BỘ HIỂN THỊ GIAO DIỆN
 	    const authContainer = document.getElementById('auth-container');
-	    const loginSection = document.getElementById('login-section'); // Khung trắng chứa Form
+	    const loginSection = document.getElementById('login-section');
 	    const menuOverlay = document.getElementById('menu-overlay');
 	
 	    if (authContainer) {
 	        authContainer.style.display = 'flex'; // Hiện lại lớp bọc mờ toàn màn hình
 	    }
-	    
 	    if (loginSection) {
-	        loginSection.style.display = 'block'; // 🌟 ÉP KHUNG TRẮNG CHỨA FORM HIỆN LÊN LẠI
+	        loginSection.style.display = 'block'; // Hiện khung Form đăng nhập màu trắng
 	    }
-	    
 	    if (menuOverlay) {
-	        menuOverlay.style.display = 'none'; // Ẩn menu game phía sau đi
+	        menuOverlay.style.display = 'none'; // Ẩn menu game phía sau
 	    }
 	
-	    console.log("[LOGOUT SUCCESS] Đã khôi phục hoàn toàn Form Đăng nhập gốc.");
+	    console.log("[LOGOUT SUCCESS] Đã đăng xuất. Thông tin mật khẩu ghi nhớ được giữ nguyên.");
 	}
 
 	// Hàm ẩn hiện chữ khi click con mắt
