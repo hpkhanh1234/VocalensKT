@@ -1316,6 +1316,9 @@
         icon: 'success',
         timer: 1200,
 		heightAuto: false,
+		customClass: {
+                popup: 'custom-account-popup'
+            },
         showConfirmButton: false
     }).then(() => {
         // TẮT HẲN khung Auth bọc ngoài để lộ giao diện Game chính phía sau
@@ -1428,6 +1431,9 @@
                     icon: 'success', 
                     timer: 1500, 
 					heightAuto: false,
+					customClass: {
+		                popup: 'custom-account-popup'
+		            },
                     showConfirmButton: false 
                 }).then(() => {
                     const authContainer = document.getElementById('auth-container');
@@ -3050,7 +3056,10 @@ async function handleRegisterSubmit(e) {
 		    Swal.fire({ 
 		        title: 'Đăng nhập thành công!', 
 		        icon: 'success', 
-		        timer: 1000, 
+		        timer: 1000,
+				customClass: {
+	                popup: 'custom-account-popup'
+	            },
 		        showConfirmButton: false 
 		    }).then(async () => {
 		        // 1. Lưu thông tin tài khoản cha
