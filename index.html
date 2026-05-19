@@ -2659,9 +2659,7 @@
 	}
 
 	// 2. TỰ ĐỘNG KIỂM TRA KHI MỞ TRANG
-
-	document.addEventListener('DOMContentLoaded', async () => {
-		// kiểm tra thiết lập theme
+	window.addEventListener('DOMContentLoaded', () => {
 		const savedTheme = localStorage.getItem('vocalens-theme');
 		const themeCheckbox = document.getElementById('theme-checkbox');
 
@@ -2671,7 +2669,9 @@
 				toggleDarkMode(); // Chạy hàm đổi màu
 			}
 		}
+	});
 
+	document.addEventListener('DOMContentLoaded', async () => {
 		// Tự động điền dữ liệu mật khẩu nếu người dùng đã lưu trước đó
 		const isRemembered = localStorage.getItem('vocalens_remember_me') === 'true';
 		if (isRemembered) {
