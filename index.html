@@ -2920,30 +2920,47 @@ if (response.ok && data.success) {
     }
 
     function logoutAccount() {
-    // 1. Xóa sạch toàn bộ dữ liệu phiên làm việc lưu trữ ở LocalStorage
-    localStorage.removeItem('userId');        // Xóa ID tài khoản cha
-    localStorage.removeItem('userProfile');   // Xóa hồ sơ học sinh đang chọn
-    localStorage.removeItem('allProfiles');    // Xóa danh sách hồ sơ đệm
+    // 1. Xóa sạch toàn bộ phiên dữ liệu lưu ở LocalStorage
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('allProfiles');
 
-    // 2. Reset các biến trạng thái toàn cục trong bộ nhớ Javascript về trạng thái ban đầu
+    // 2. Đưa các biến trạng thái Javascript về mặc định
     if (typeof userProfile !== 'undefined') userProfile = null;
     if (typeof allProfiles !== 'undefined') allProfiles = [];
 
-    // 3. Điều khiển giao diện quay trở lại Form Đăng nhập
-    const authContainer = document.getElementById('auth-container');
-    const loginSection = document.getElementById('login-section');
-    const profileSection = document.getElementById('profile-selection-section');
-
-    if (authContainer) authContainer.style.display = 'block'; // Hiển thị khung Auth bọc ngoài
-    if (loginSection) loginSection.style.display = 'block';   // Hiện lại Form điền Email/Password
-    if (profileSection) profileSection.style.display = 'none'; // Ẩn màn hình Chọn Profile (nếu đang mở)
-
-    // 4. (Tùy chọn) Đóng tất cả các thông báo SweetAlert2 đang hiển thị dở dang
+    // 3. Ép đóng tất cả các cửa sổ thông báo/popup SweetAlert2 (nếu có cái nào đang bật)
     if (typeof Swal !== 'undefined') {
         Swal.close();
     }
 
-    console.log("[LOGOUT] Đã đăng xuất thành công, hệ thống đã quay về màn hình đăng nhập.");
+    // 4. Xử lý đồng bộ Giao diện (Ẩn sạch giao diện game/profile, chỉ hiện form Đăng nhập)
+    const authContainer = document.getElementById('auth-container');
+    const loginSection = document.getElementById('login-section');
+    const profileSection = document.getElementById('profile-selection-section');
+
+    // Hiện khung bọc Auth lớn bên ngoài
+    if (authContainer) {
+        authContainer.style.display = 'block';
+    }
+    
+    // Hiện duy nhất form Đăng nhập tài khoản cha
+    if (loginSection) {
+        loginSection.style.display = 'block';
+    }
+    
+    // Ẩn hoàn toàn khung chọn Profile con đi để tránh bị đè chữ như trong ảnh
+    if (profileSection) {
+        profileSection.style.display = 'none';
+    }
+
+    // 5. Reset lại các ô input điền tài khoản/mật khẩu về trống (tùy chọn - bảo mật hơn)
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+
+    console.log("[LOGOUT SUCCESS] Đã đăng xuất hoàn toàn hệ thống.");
 }
 </script>
 </body>
