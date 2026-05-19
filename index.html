@@ -990,7 +990,18 @@
 			const resProfiles = await fetch(`${API_URL}/profiles`,{
     headers: commonHeaders
 });
-			allProfiles = await resProfiles.json();
+			dataProfiles = await resProfiles.json();
+
+            if (dataProfiles && dataProfiles.success && Array.isArray(dataProfiles.profiles)) {
+                allProfiles = dataProfiles.profiles;
+            } else if (Array.isArray(dataProfiles)) {
+                // Phòng hờ nếu API cũ hoặc API leaderboard nào đó vẫn trả về dạng mảng phẳng trực tiếp
+                allProfiles = dataProfiles;
+            } else {
+                // Nếu hoàn toàn không có dữ liệu hợp lệ, gán mảng rỗng để bảo vệ hệ thống không bị crash
+                allProfiles = [];
+            }
+			
 			leaderboard = [...allProfiles]; // API đã sắp xếp sẵn theo số sao
 
 			buildMenu();
