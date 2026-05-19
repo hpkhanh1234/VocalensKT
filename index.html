@@ -787,15 +787,6 @@
             <button type="button" id="btn-submit-register" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; display: none;" onclick="handleRegisterSubmit(event)">ĐĂNG KÝ NGAY</button>
         </div>
     </div>
-
-    <div id="profile-selection-section" class="auth-card" style="display:none;">
-        <h2 class="auth-title">Ai đang học thế?</h2>
-        <div id="profile-list-grid" class="profile-grid"></div>
-        <button type="button" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; margin-top: 10px;" onclick="addNewProfilePrompt()">
-            <i class="fas fa-plus-circle"></i> Thêm hồ sơ
-        </button>
-        <button type="button" class="btn-back-auth" onclick="logoutAccount()">Đăng xuất</button>
-    </div>
 </div>
     <div class="header-brand">
         <div class="brand-left">
@@ -820,7 +811,8 @@
 			</button>
             <button class="btn-action btn-swing" onclick="startTutorial()" title="Hướng dẫn">?</button>
             <button class="btn-action btn-swing" onclick="openConfig()" title="Cấu hình"><i class="fas fa-cog"></i></button>
-        </div>
+        	<button class="btn-action btn-swing" onclick="logoutAccount()" title="Người dùng"><i class="fas fa-cog"></i></button>
+		</div>
 		<input type="file" id="fileInput" hidden accept=".xlsx, .xls">
     </div>
 
@@ -1366,7 +1358,7 @@
 
         container.innerHTML = `
             <div class="mini-profile">
-                <button class="btn-logout btn-swing" onclick="logout()">Đổi tài khoản</button>
+                <button class="btn-logout btn-swing" onclick="changeprofile()">Đổi profile</button>
                 <div class="btn-swing avatar-circle" onclick="changeAvatar()">${userProfile.avatar}</div>
                 <div class="profile-info">
                     <h3>${userProfile.name}</h3>
@@ -1412,8 +1404,8 @@
         }
     }
 	
-	/* XỬ LÝ THAY ĐỔI TÀI KHOẢN */
-    function logout() {
+	/* XỬ LÝ THAY ĐỔI PROFILE */
+    function changeprofile() {
 		if (!userProfile) return;
 		
 		// Lưu profile hiện tại vào danh sách tổng trước khi thoát
