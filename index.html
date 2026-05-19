@@ -2659,17 +2659,6 @@
 	}
 
 	// 2. TỰ ĐỘNG KIỂM TRA KHI MỞ TRANG
-	window.addEventListener('DOMContentLoaded', () => {
-		const savedTheme = localStorage.getItem('vocalens-theme');
-		const themeCheckbox = document.getElementById('theme-checkbox');
-
-		if (savedTheme === 'dark') {
-			if (themeCheckbox) {
-				themeCheckbox.checked = true; // Gạt nút sang phải
-				toggleDarkMode(); // Chạy hàm đổi màu
-			}
-		}
-	});
 
 	document.addEventListener('DOMContentLoaded', async () => {
 		// kiểm tra thiết lập theme
@@ -2681,6 +2670,18 @@
 				themeCheckbox.checked = true; // Gạt nút sang phải
 				toggleDarkMode(); // Chạy hàm đổi màu
 			}
+		}
+
+		// Tự động điền dữ liệu mật khẩu nếu người dùng đã lưu trước đó
+		const isRemembered = localStorage.getItem('vocalens_remember_me') === 'true';
+		if (isRemembered) {
+		    const savedEmail = localStorage.getItem('vocalens_remember_email');
+		    const savedPassword = localStorage.getItem('vocalens_remember_password');
+		    
+		    if (savedEmail) document.getElementById('auth-email').value = savedEmail;
+		    if (savedPassword) document.getElementById('auth-password').value = savedPassword;
+		    const remCheck = document.getElementById('auth-remember');
+		    if (remCheck) remCheck.checked = true;
 		}
 		
 	    // 1. Kiểm tra xem dữ liệu phiên cũ có tồn tại trong LocalStorage không
@@ -2770,28 +2771,47 @@
     // Đảm bảo biến API_URL đã được khai báo ở đầu phần script của bạn
 // const API_URL = "http://localhost:3000/api"; 
 
-function toggleAuthMode(mode) {
-    console.log("Chuyển chế độ Auth sang:", mode);
-    const tabLogin = document.getElementById('tab-login');
-    const tabRegister = document.getElementById('tab-register');
-    const confirmInput = document.getElementById('auth-confirm-password');
-    const btnLogin = document.getElementById('btn-submit-login');
-    const btnRegister = document.getElementById('btn-submit-register');
-
-    if (mode === 'login') {
-        if(tabLogin) tabLogin.classList.add('active');
-        if(tabRegister) tabRegister.classList.remove('active');
-        if(confirmInput) confirmInput.style.display = 'none';
-        if(btnLogin) btnLogin.style.display = 'block';
-        if(btnRegister) btnRegister.style.display = 'none';
-    } else {
-        if(tabLogin) tabLogin.classList.remove('active');
-        if(tabRegister) tabRegister.classList.add('active');
-        if(confirmInput) confirmInput.style.display = 'block'; // Hiện ô Xác nhận mật khẩu
-        if(btnLogin) btnLogin.style.display = 'none';
-        if(btnRegister) btnRegister.style.display = 'block'; // Hiện nút Đăng ký
-    }
-}
+	function toggleAuthMode(mode) {
+	    const tabLogin = document.getElementById('tab-login');
+	    const tabRegister = document.getElementById('tab-register');
+	    const btnSubmitLogin = document.getElementById('btn-submit-login');
+	    const btnSubmitRegister = document.getElementById('btn-submit-register');
+	    
+	    // Cập nhật tìm theo Wrapper bọc thay vì tìm input trực tiếp để tránh vỡ layout con mắt
+	    const confirmWrapper = document.getElementById('confirm-password-wrapper');
+	    const confirmInput = document.getElementById('auth-confirm-password');
+	    const rememberContainer = document.getElementById('remember-me-container');
+	    const redirectText = document.getElementById('redirect-text');
+	    const redirectLink = document.getElementById('redirect-link');
+	
+	    // Reset con mắt về ẩn password mặc định khi chuyển qua lại giữa các Tab
+	    document.getElementById('auth-password').type = 'password';
+	    if(confirmInput) confirmInput.type = 'password';
+	    ['toggle-password', 'toggle-confirm-password'].forEach(id => {
+	        const eye = document.getElementById(id);
+	        if(eye) { eye.classList.add('fa-eye'); eye.classList.remove('fa-eye-slash'); eye.style.color = "#aaa"; }
+	    });
+	
+	    if (mode === 'login') {
+	        if(tabLogin) tabLogin.classList.add('active');
+	        if(tabRegister) tabRegister.classList.remove('active');
+	        if(confirmWrapper) confirmWrapper.style.display = 'none';
+	        if(btnSubmitLogin) btnSubmitLogin.style.display = 'block';
+	        if(btnSubmitRegister) btnSubmitRegister.style.display = 'none';
+	        if(rememberContainer) rememberContainer.style.display = 'flex'; // Hiện ghi nhớ khi đăng nhập
+	        if(redirectText) redirectText.innerText = "Chưa có tài khoản?";
+	        if(redirectLink) redirectLink.innerText = "Đăng ký ngay";
+	    } else {
+	        if(tabLogin) tabLogin.classList.remove('active');
+	        if(tabRegister) tabRegister.classList.add('active');
+	        if(confirmWrapper) confirmWrapper.style.display = 'block';
+	        if(btnSubmitLogin) btnSubmitLogin.style.display = 'none';
+	        if(btnSubmitRegister) btnSubmitRegister.style.display = 'block';
+	        if(rememberContainer) rememberContainer.style.display = 'none'; // Ẩn ghi nhớ khi đăng ký
+	        if(redirectText) redirectText.innerText = "Đã có tài khoản rồi?";
+	        if(redirectLink) redirectLink.innerText = "Đăng nhập";
+	    }
+	}
 
 async function handleRegisterSubmit(e) {
     // 1. Chặn trình duyệt reload trang
@@ -2920,51 +2940,66 @@ async function handleRegisterSubmit(e) {
         Swal.close();
 
         // Tìm đến đoạn xử lý ĐĂNG NHẬP THÀNH CÔNG trong file của bạn:
-if (response.ok && data.success) {
-    Swal.fire({ 
-        title: 'Đăng nhập thành công!', 
-        icon: 'success', 
-        timer: 1000, 
-        showConfirmButton: false 
-    }).then(async () => {
-        // 1. Lưu thông tin tài khoản cha
-        if (data.user && data.user.id) {
-            localStorage.setItem('userId', data.user.id);
-        } else {
-            console.error("Không tìm thấy thông tin user trong dữ liệu trả về:", data);
-        }
+		if (response.ok && data.success) {
+		    Swal.fire({ 
+		        title: 'Đăng nhập thành công!', 
+		        icon: 'success', 
+		        timer: 1000, 
+		        showConfirmButton: false 
+		    }).then(async () => {
+		        // 1. Lưu thông tin tài khoản cha
+		        if (data.user && data.user.id) {
+		            localStorage.setItem('userId', data.user.id);
+		        } else {
+		            console.error("Không tìm thấy thông tin user trong dữ liệu trả về:", data);
+		        }
+		
+		        // 2. Lưu danh sách profiles tươi từ Database vào localStorage
+		        const profilesList = data.profiles || [];
+		        localStorage.setItem("allProfiles", JSON.stringify(profilesList));
+		        if (typeof allProfiles !== 'undefined') allProfiles = profilesList;
+		
+		        // 3. Xóa profile cũ đang chạy (nếu có) để bắt buộc hiển thị danh sách chọn
+		        localStorage.removeItem("userProfile");
+		        if (typeof userProfile !== 'undefined') userProfile = null;
+		
+		        // BƯỚC QUAN TRỌNG: Ẩn/Dọn dẹp form Đăng nhập cũ trước khi gọi giao diện chọn profile
+		        const loginSection = document.getElementById('login-section');
+		        if (loginSection) {
+		            loginSection.style.display = 'none'; // Ẩn riêng form đăng nhập chữ/nút đi
+		        }
+		        
+		        // Hoặc nếu bạn muốn ẩn toàn bộ khung auth bọc ngoài:
+		        // const authContainer = document.getElementById('auth-container');
+		        // if (authContainer) authContainer.style.display = 'none';
 
-        // 2. Lưu danh sách profiles tươi từ Database vào localStorage
-        const profilesList = data.profiles || [];
-        localStorage.setItem("allProfiles", JSON.stringify(profilesList));
-        if (typeof allProfiles !== 'undefined') allProfiles = profilesList;
-
-        // 3. Xóa profile cũ đang chạy (nếu có) để bắt buộc hiển thị danh sách chọn
-        localStorage.removeItem("userProfile");
-        if (typeof userProfile !== 'undefined') userProfile = null;
-
-        // 🌟 BƯỚC QUAN TRỌNG: Ẩn/Dọn dẹp form Đăng nhập cũ trước khi gọi giao diện chọn profile
-        const loginSection = document.getElementById('login-section');
-        if (loginSection) {
-            loginSection.style.display = 'none'; // Ẩn riêng form đăng nhập chữ/nút đi
-        }
-        
-        // Hoặc nếu bạn muốn ẩn toàn bộ khung auth bọc ngoài:
-        // const authContainer = document.getElementById('auth-container');
-        // if (authContainer) authContainer.style.display = 'none';
-
-        // 4. Gọi hàm checkUser() của bạn để kích hoạt popup Chọn tài khoản sạch sẽ
-        await checkUser();
-    });
-} else {
-            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai thông tin đăng nhập!', icon: 'error', confirmButtonColor: '#ff4b4b' });
-        }
-    } catch (error) {
-        console.error("Lỗi handleLoginSubmit:", error);
-        Swal.close();
-        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến máy chủ API.', icon: 'error', confirmButtonColor: '#ff4b4b' });
-    }
-}
+				// Lưu thông tin đăng nhập
+				const rememberCheckbox = document.getElementById('auth-remember');
+				const emailVal = document.getElementById('auth-email').value.trim();
+				const passwordVal = document.getElementById('auth-password').value;
+				
+				if (rememberCheckbox && rememberCheckbox.checked) {
+				    localStorage.setItem('vocalens_remember_email', emailVal);
+				    localStorage.setItem('vocalens_remember_password', passwordVal);
+				    localStorage.setItem('vocalens_remember_me', 'true');
+				} else {
+				    localStorage.removeItem('vocalens_remember_email');
+				    localStorage.removeItem('vocalens_remember_password');
+				    localStorage.removeItem('vocalens_remember_me');
+				}
+		
+		        // 4. Gọi hàm checkUser() của bạn để kích hoạt popup Chọn tài khoản sạch sẽ
+		        await checkUser();
+		    });
+		} else {
+		            Swal.fire({ title: 'Thất bại', text: data.error || 'Sai thông tin đăng nhập!', icon: 'error', confirmButtonColor: '#ff4b4b' });
+		        }
+		    } catch (error) {
+		        console.error("Lỗi handleLoginSubmit:", error);
+		        Swal.close();
+		        Swal.fire({ title: 'Lỗi kết nối', text: 'Không thể kết nối đến máy chủ API.', icon: 'error', confirmButtonColor: '#ff4b4b' });
+		    }
+		}
     function renderProfiles(profilesList) {
     const grid = document.getElementById('profile-list-grid');
     
@@ -3002,61 +3037,89 @@ if (response.ok && data.success) {
     }
 
     function logoutAccount() {
-    // 1. Ép đóng ngay lập tức toàn bộ các cửa sổ SweetAlert2 (Popup chọn profile, thông báo...)
-    if (typeof Swal !== 'undefined') {
-        Swal.close();
-    }
+	    // 1. Ép đóng ngay lập tức toàn bộ các cửa sổ SweetAlert2 (Popup chọn profile, thông báo...)
+	    if (typeof Swal !== 'undefined') {
+	        Swal.close();
+	    }
+	
+	    // 2. Xóa sạch toàn bộ phiên dữ liệu đã lưu trong LocalStorage
+	    localStorage.removeItem('userId');
+	    localStorage.removeItem('userProfile');
+	    localStorage.removeItem('allProfiles');
+	
+	    // 3. Khởi tạo lại các biến trạng thái Javascript toàn cục về mặc định
+	    if (typeof userProfile !== 'undefined') userProfile = null;
+	    if (typeof allProfiles !== 'undefined') allProfiles = [];
+	
+	    // 4. Reset các ô dữ liệu nhập trong Form về trống
+	    const emailInput = document.getElementById('auth-email');
+	    const passwordInput = document.getElementById('auth-password');
+	    const confirmPasswordInput = document.getElementById('auth-confirm-password');
+	    if (emailInput) emailInput.value = '';
+	    if (passwordInput) passwordInput.value = '';
+	    if (confirmPasswordInput) {
+	        confirmPasswordInput.value = '';
+	        confirmPasswordInput.style.display = 'none'; // Ẩn ô nhập lại mật khẩu
+	    }
+	
+	    // Đưa các nút bấm và Tab lựa chọn về trạng thái Đăng nhập mặc định
+	    const btnSubmitLogin = document.getElementById('btn-submit-login');
+	    const btnSubmitRegister = document.getElementById('btn-submit-register');
+	    const tabLogin = document.getElementById('tab-login');
+	    const tabRegister = document.getElementById('tab-register');
+	
+	    if (btnSubmitLogin) btnSubmitLogin.style.display = 'block';
+	    if (btnSubmitRegister) btnSubmitRegister.style.display = 'none';
+	    if (tabLogin) tabLogin.classList.add('active');
+	    if (tabRegister) tabRegister.classList.remove('active');
+	
+	    // 5. ĐỒNG BỘ GIAO DIỆN (Quan trọng nhất để sửa lỗi mất hình):
+	    const authContainer = document.getElementById('auth-container');
+	    const loginSection = document.getElementById('login-section'); // Khung trắng chứa Form
+	    const menuOverlay = document.getElementById('menu-overlay');
+	
+	    if (authContainer) {
+	        authContainer.style.display = 'flex'; // Hiện lại lớp bọc mờ toàn màn hình
+	    }
+	    
+	    if (loginSection) {
+	        loginSection.style.display = 'block'; // 🌟 ÉP KHUNG TRẮNG CHỨA FORM HIỆN LÊN LẠI
+	    }
+	    
+	    if (menuOverlay) {
+	        menuOverlay.style.display = 'none'; // Ẩn menu game phía sau đi
+	    }
+	
+	    console.log("[LOGOUT SUCCESS] Đã khôi phục hoàn toàn Form Đăng nhập gốc.");
+	}
 
-    // 2. Xóa sạch toàn bộ phiên dữ liệu đã lưu trong LocalStorage
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userProfile');
-    localStorage.removeItem('allProfiles');
-
-    // 3. Khởi tạo lại các biến trạng thái Javascript toàn cục về mặc định
-    if (typeof userProfile !== 'undefined') userProfile = null;
-    if (typeof allProfiles !== 'undefined') allProfiles = [];
-
-    // 4. Reset các ô dữ liệu nhập trong Form về trống
-    const emailInput = document.getElementById('auth-email');
-    const passwordInput = document.getElementById('auth-password');
-    const confirmPasswordInput = document.getElementById('auth-confirm-password');
-    if (emailInput) emailInput.value = '';
-    if (passwordInput) passwordInput.value = '';
-    if (confirmPasswordInput) {
-        confirmPasswordInput.value = '';
-        confirmPasswordInput.style.display = 'none'; // Ẩn ô nhập lại mật khẩu
-    }
-
-    // Đưa các nút bấm và Tab lựa chọn về trạng thái Đăng nhập mặc định
-    const btnSubmitLogin = document.getElementById('btn-submit-login');
-    const btnSubmitRegister = document.getElementById('btn-submit-register');
-    const tabLogin = document.getElementById('tab-login');
-    const tabRegister = document.getElementById('tab-register');
-
-    if (btnSubmitLogin) btnSubmitLogin.style.display = 'block';
-    if (btnSubmitRegister) btnSubmitRegister.style.display = 'none';
-    if (tabLogin) tabLogin.classList.add('active');
-    if (tabRegister) tabRegister.classList.remove('active');
-
-    // 5. ĐỒNG BỘ GIAO DIỆN (Quan trọng nhất để sửa lỗi mất hình):
-    const authContainer = document.getElementById('auth-container');
-    const loginSection = document.getElementById('login-section'); // Khung trắng chứa Form
-    const menuOverlay = document.getElementById('menu-overlay');
-
-    if (authContainer) {
-        authContainer.style.display = 'flex'; // Hiện lại lớp bọc mờ toàn màn hình
-    }
-    
-    if (loginSection) {
-        loginSection.style.display = 'block'; // 🌟 ÉP KHUNG TRẮNG CHỨA FORM HIỆN LÊN LẠI
-    }
-    
-    if (menuOverlay) {
-        menuOverlay.style.display = 'none'; // Ẩn menu game phía sau đi
-    }
-
-    console.log("[LOGOUT SUCCESS] Đã khôi phục hoàn toàn Form Đăng nhập gốc.");
-}
+	// Hàm ẩn hiện chữ khi click con mắt
+	function togglePasswordVisibility(inputId, iconElement) {
+	    const passwordInput = document.getElementById(inputId);
+	    if (!passwordInput) return;
+	    
+	    if (passwordInput.type === "password") {
+	        passwordInput.type = "text";
+	        iconElement.classList.remove("fa-eye");
+	        iconElement.classList.add("fa-eye-slash");
+	        iconElement.style.color = "#1cb0f6"; // Đổi màu xanh chủ đạo khi đang hiển thị
+	    } else {
+	        passwordInput.type = "password";
+	        iconElement.classList.remove("fa-eye-slash");
+	        iconElement.classList.add("fa-eye");
+	        iconElement.style.color = "#aaa";
+	    }
+	}
+	
+	// Hàm điều hướng nhanh bằng dòng chữ dưới chân form
+	function handleRedirectMode() {
+	    const btnLogin = document.getElementById('btn-submit-login');
+	    if (btnLogin && btnLogin.style.display !== 'none') {
+	        toggleAuthMode('register');
+	    } else {
+	        toggleAuthMode('login');
+	    }
+	}
 </script>
 </body>
 </html>
