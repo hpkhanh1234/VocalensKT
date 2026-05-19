@@ -769,24 +769,44 @@
 <div class="app-container">
         <!-- Giao diện Đăng nhập / Chọn Profile -->
         <div id="auth-container" class="auth-overlay">
-    <div id="login-section" class="auth-card">
-        <div class="logo-icon-large"><i class="fas fa-book"></i></div>
-        <h2 class="auth-title">Vocalens</h2>
-        
-        <div class="auth-tabs">
-            <button type="button" id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Đăng nhập</button>
-            <button type="button" id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Đăng ký</button>
+		<div id="login-section" class="auth-box">
+    <div class="auth-header">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Đăng nhập</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Đăng ký</div>
+    </div>
+    
+    <div class="auth-body">
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="auth-email" placeholder="Email của phụ huynh">
         </div>
         
-        <div class="auth-form-group">
-            <input type="text" id="auth-email" placeholder="Email hoặc Tên đăng nhập" class="auth-input">
-            <input type="password" id="auth-password" placeholder="Mật khẩu" class="auth-input">
-            <input type="password" id="auth-confirm-password" placeholder="Xác nhận mật khẩu" class="auth-input" style="display:none;">
-            
-            <button type="button" id="btn-submit-login" class="btn-check" style="width: 100%;" onclick="handleLoginSubmit(event)">ĐĂNG NHẬP</button>
-            <button type="button" id="btn-submit-register" class="btn-check" style="width: 100%; background-color: #58cc02; border-color: #46a302; display: none;" onclick="handleRegisterSubmit(event)">ĐĂNG KÝ NGAY</button>
+        <div class="input-group" style="position: relative;">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="auth-password" placeholder="Mật khẩu" style="padding-right: 40px;">
+            <i class="fas fa-eye" id="toggle-password" onclick="togglePasswordVisibility('auth-password', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; left: auto; width: auto;"></i>
+        </div>
+        
+        <div class="input-group" id="confirm-password-group" style="display: none; position: relative;">
+            <i class="fas fa-check-double"></i>
+            <input type="password" id="auth-confirm-password" placeholder="Nhập lại mật khẩu" style="padding-right: 40px;">
+            <i class="fas fa-eye" id="toggle-confirm-password" onclick="togglePasswordVisibility('auth-confirm-password', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; left: auto; width: auto;"></i>
+        </div>
+
+        <div class="auth-options" id="remember-me-container" style="display: flex; align-items: center; justify-content: flex-start; margin: -5px 0 15px 5px; font-size: 0.9rem; color: #666;">
+            <input type="checkbox" id="auth-remember" style="margin-right: 8px; cursor: pointer; width: 16px; height: 16px;">
+            <label for="auth-remember" style="cursor: pointer; user-select: none;">Ghi nhớ mật khẩu</label>
+        </div>
+
+        <button class="btn-auth" id="btn-submit-login" onclick="handleLoginSubmit()">Đăng nhập ngay</button>
+        <button class="btn-auth" id="btn-submit-register" onclick="handleRegisterSubmit()" style="display: none;">Tạo tài khoản</button>
+        
+        <div class="auth-footer-redirect" style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: #555;">
+            <span id="redirect-text">Chưa có tài khoản?</span> 
+            <a href="javascript:void(0)" id="redirect-link" onclick="toggleAuthMode()" style="color: #1cb0f6; font-weight: bold; text-decoration: none; margin-left: 5px;">Đăng ký ngay</a>
         </div>
     </div>
+</div>
 </div>
     <div class="header-brand">
         <div class="brand-left">
