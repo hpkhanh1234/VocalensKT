@@ -1281,16 +1281,17 @@
         }).join('');
 
         await Swal.fire({
-            title: '<div class="account-title">Chọn tài khoản</div>',
+            title: '<div class="account-title">Chọn hồ sơ học sinh</div>',
             html: `
                 <div style="max-height: 400px; overflow-y: auto; padding: 10px;">
                     ${profileOptions}
                 </div>
                 <button onclick="showRegistration()" class="btn-add-student">
-                    <i class="fas fa-plus-circle"></i> Thêm học sinh mới
+                    <i class="fas fa-plus-circle"></i> Thêm hồ sơ mới
                 </button>
                 <div style="margin-top:15px; font-size:0.8rem; color:#888; font-weight:600">Hãy bắt đầu hành trình của bạn!</div>
             `,
+			heightAuto: false,
             showConfirmButton: false,
             showCloseButton: true,
             customClass: {
