@@ -2920,47 +2920,55 @@ if (response.ok && data.success) {
     }
 
     function logoutAccount() {
-    // 1. Xóa sạch toàn bộ phiên dữ liệu lưu ở LocalStorage
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userProfile');
-    localStorage.removeItem('allProfiles');
-
-    // 2. Đưa các biến trạng thái Javascript về mặc định
-    if (typeof userProfile !== 'undefined') userProfile = null;
-    if (typeof allProfiles !== 'undefined') allProfiles = [];
-
-    // 3. Ép đóng tất cả các cửa sổ thông báo/popup SweetAlert2 (nếu có cái nào đang bật)
+    // 1. Ép đóng ngay lập tức toàn bộ các cửa sổ SweetAlert2 (Popup chọn profile con, thông báo...)
     if (typeof Swal !== 'undefined') {
         Swal.close();
     }
 
-    // 4. Xử lý đồng bộ Giao diện (Ẩn sạch giao diện game/profile, chỉ hiện form Đăng nhập)
-    const authContainer = document.getElementById('auth-container');
-    const loginSection = document.getElementById('login-section');
-    const profileSection = document.getElementById('profile-selection-section');
+    // 2. Xóa sạch toàn bộ phiên dữ liệu đã lưu trong LocalStorage
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('allProfiles');
 
-    // Hiện khung bọc Auth lớn bên ngoài
-    if (authContainer) {
-        authContainer.style.display = 'block';
-    }
-    
-    // Hiện duy nhất form Đăng nhập tài khoản cha
-    if (loginSection) {
-        loginSection.style.display = 'block';
-    }
-    
-    // Ẩn hoàn toàn khung chọn Profile con đi để tránh bị đè chữ như trong ảnh
-    if (profileSection) {
-        profileSection.style.display = 'none';
-    }
+    // 3. Khởi tạo lại các biến trạng thái Javascript toàn cục về mặc định
+    if (typeof userProfile !== 'undefined') userProfile = null;
+    if (typeof allProfiles !== 'undefined') allProfiles = [];
 
-    // 5. Reset lại các ô input điền tài khoản/mật khẩu về trống (tùy chọn - bảo mật hơn)
-    const emailInput = document.getElementById('login-email');
-    const passwordInput = document.getElementById('login-password');
+    // 4. Reset giao diện Form đăng nhập về trạng thái nguyên bản (Ẩn Đăng ký, hiện Đăng nhập)
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    const confirmPasswordInput = document.getElementById('auth-confirm-password');
+    const btnSubmitLogin = document.getElementById('btn-submit-login');
+    const btnSubmitRegister = document.getElementById('btn-submit-register');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+
     if (emailInput) emailInput.value = '';
     if (passwordInput) passwordInput.value = '';
+    if (confirmPasswordInput) {
+        confirmPasswordInput.value = '';
+        confirmPasswordInput.style.display = 'none'; // Ẩn ô nhập lại mật khẩu
+    }
 
-    console.log("[LOGOUT SUCCESS] Đã đăng xuất hoàn toàn hệ thống.");
+    // Đưa các nút bấm và tab chuyển đổi về chế độ Đăng nhập mặc định
+    if (btnSubmitLogin) btnSubmitLogin.style.display = 'block';
+    if (btnSubmitRegister) btnSubmitRegister.style.display = 'none';
+    if (tabLogin) tabLogin.classList.add('active');
+    if (tabRegister) tabRegister.classList.remove('active');
+
+    // 5. Điều khiển các khung giao diện lớn ẩn/hiện đồng bộ
+    const authContainer = document.getElementById('auth-container');
+    const menuOverlay = document.getElementById('menu-overlay');
+
+    if (authContainer) {
+        authContainer.style.display = 'flex'; // Hiển thị đè toàn màn hình lớp Auth Overlay
+    }
+    
+    if (menuOverlay) {
+        menuOverlay.style.display = 'none'; // Ẩn triệt để menu game phía sau (nếu đang mở)
+    }
+
+    console.log("[LOGOUT SUCCESS] Đã dọn dẹp bộ nhớ và đưa giao diện về Form đăng nhập gốc.");
 }
 </script>
 </body>
