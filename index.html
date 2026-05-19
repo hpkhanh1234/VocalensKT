@@ -2920,8 +2920,31 @@ if (response.ok && data.success) {
     }
 
     function logoutAccount() {
-        document.getElementById('login-section').style.display = 'block';
+    // 1. Xóa sạch toàn bộ dữ liệu phiên làm việc lưu trữ ở LocalStorage
+    localStorage.removeItem('userId');        // Xóa ID tài khoản cha
+    localStorage.removeItem('userProfile');   // Xóa hồ sơ học sinh đang chọn
+    localStorage.removeItem('allProfiles');    // Xóa danh sách hồ sơ đệm
+
+    // 2. Reset các biến trạng thái toàn cục trong bộ nhớ Javascript về trạng thái ban đầu
+    if (typeof userProfile !== 'undefined') userProfile = null;
+    if (typeof allProfiles !== 'undefined') allProfiles = [];
+
+    // 3. Điều khiển giao diện quay trở lại Form Đăng nhập
+    const authContainer = document.getElementById('auth-container');
+    const loginSection = document.getElementById('login-section');
+    const profileSection = document.getElementById('profile-selection-section');
+
+    if (authContainer) authContainer.style.display = 'block'; // Hiển thị khung Auth bọc ngoài
+    if (loginSection) loginSection.style.display = 'block';   // Hiện lại Form điền Email/Password
+    if (profileSection) profileSection.style.display = 'none'; // Ẩn màn hình Chọn Profile (nếu đang mở)
+
+    // 4. (Tùy chọn) Đóng tất cả các thông báo SweetAlert2 đang hiển thị dở dang
+    if (typeof Swal !== 'undefined') {
+        Swal.close();
     }
+
+    console.log("[LOGOUT] Đã đăng xuất thành công, hệ thống đã quay về màn hình đăng nhập.");
+}
 </script>
 </body>
 </html>
