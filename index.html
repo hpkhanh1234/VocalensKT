@@ -811,7 +811,7 @@
 			</button>
             <button class="btn-action btn-swing" onclick="startTutorial()" title="Hướng dẫn">?</button>
             <button class="btn-action btn-swing" onclick="openConfig()" title="Cấu hình"><i class="fas fa-cog"></i></button>
-        	<button class="btn-action btn-swing" onclick="logoutAccount()" title="Người dùng"><i class="fas fa-id-card"></i></button>
+        	<button class="btn-action btn-swing" onclick="logoutAccount()" title="Đăng xuất"><i class="fas fa-forward"></i></button>
 		</div>
 		<input type="file" id="fileInput" hidden accept=".xlsx, .xls">
     </div>
@@ -1194,7 +1194,7 @@
         timer: 1200,
         showConfirmButton: false
     }).then(() => {
-        // 🌟 TẮT HẲN khung Auth bọc ngoài để lộ giao diện Game chính phía sau
+        // TẮT HẲN khung Auth bọc ngoài để lộ giao diện Game chính phía sau
         const authContainer = document.getElementById('auth-container');
         if (authContainer) {
             authContainer.style.display = 'none';
@@ -2649,6 +2649,68 @@
 				toggleDarkMode(); // Chạy hàm đổi màu
 			}
 		}
+	});
+
+	document.addEventListener('DOMContentLoaded', async () => {
+		// kiểm tra thiết lập theme
+		const savedTheme = localStorage.getItem('vocalens-theme');
+		const themeCheckbox = document.getElementById('theme-checkbox');
+
+		if (savedTheme === 'dark') {
+			if (themeCheckbox) {
+				themeCheckbox.checked = true; // Gạt nút sang phải
+				toggleDarkMode(); // Chạy hàm đổi màu
+			}
+		}
+		
+	    // 1. Kiểm tra xem dữ liệu phiên cũ có tồn tại trong LocalStorage không
+	    const savedUserId = localStorage.getItem('userId');
+	    const savedProfile = localStorage.getItem('userProfile');
+	    const savedAllProfiles = localStorage.getItem('allProfiles');
+	
+	    // Khôi phục lại trạng thái mảng dữ liệu trong bộ nhớ tạm Javascipt
+	    if (savedAllProfiles) {
+	        allProfiles = JSON.parse(savedAllProfiles);
+	    }
+	
+	    if (savedUserId) {
+	        // Tình huống 1: Đã đăng nhập tài khoản cha trước đó
+	        console.log("[AUTO-LOGIN] Tìm thấy userId:", savedUserId);
+	        
+	        if (savedProfile) {
+	            // Tình huống 1.1: Đã chọn luôn hồ sơ học sinh hoạt động
+	            userProfile = JSON.parse(savedProfile);
+	            console.log("[AUTO-LOGIN] Khôi phục hồ sơ học sinh:", userProfile.name);
+	            
+	            // Ẩn màn hình đăng nhập, cho phép học sinh vào thẳng game
+	            const authContainer = document.getElementById('auth-container');
+	            if (authContainer) authContainer.style.display = 'none';
+	            
+	            // Gọi các hàm khởi tạo giao diện game của bạn
+	            if (typeof renderMiniProfile === 'function') renderMiniProfile();
+	            // Nạp dữ liệu học từ database hoặc hiển thị tiến trình của học sinh tại đây...
+	
+	        } else {
+	            // Tình huống 1.2: Có tài khoản cha nhưng chưa chọn hồ sơ học sinh con
+	            // Ẩn form đăng nhập gốc và tự động bật popup Chọn tài khoản
+	            const loginSection = document.getElementById('login-section');
+	            if (loginSection) loginSection.style.display = 'none';
+	            
+	            await checkUser(); // Bật popup SweetAlert2 chọn tài khoản
+	        }
+	    } else {
+	        // Tình huống 2: Chưa từng đăng nhập, giữ nguyên màn hình Login mặc định
+	        console.log("[AUTO-LOGIN] Chưa đăng nhập tài khoản gốc.");
+	        const authContainer = document.getElementById('auth-container');
+	        const loginSection = document.getElementById('login-section');
+	        if (authContainer) authContainer.style.display = 'flex';
+	        if (loginSection) loginSection.style.display = 'block';
+	    }
+	
+	    // --- Đoạn code gọi nạp từ vựng initDatabase() hiện tại của bạn tiếp tục ở dưới này ---
+	    if (typeof initDatabase === 'function') {
+	        await initDatabase();
+	    }
 	});
 	
 	// --- LOGIC NHẬN DIỆN GIỌNG NÓI ---
