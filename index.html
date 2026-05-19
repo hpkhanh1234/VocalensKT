@@ -1095,7 +1095,7 @@
     // 2. GỌI API LẤY DANH SÁCH PROFILE TRỰC TIẾP TỪ DATABASE VIA BACKEND
     try {
         // Tắt bớt log không cần thiết, gọi API đồng bộ dữ liệu mới nhất
-        const response = await fetch(`${API_URL}/auth/profiles?userId=${currentUserId}`, {
+        const response = await fetch(`${API_URL}/profiles?userId=${currentUserId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
