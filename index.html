@@ -2854,7 +2854,11 @@ if (response.ok && data.success) {
         showConfirmButton: false 
     }).then(async () => {
         // 1. Lưu thông tin tài khoản cha
-        localStorage.setItem('userId', data.userId);
+        if (data.user && data.user.id) {
+            localStorage.setItem('userId', data.user.id);
+        } else {
+            console.error("Không tìm thấy thông tin user trong dữ liệu trả về:", data);
+        }
 
         // 2. Lưu danh sách profiles tươi từ Database vào localStorage
         const profilesList = data.profiles || [];
