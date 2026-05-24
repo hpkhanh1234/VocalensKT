@@ -1103,92 +1103,101 @@
 
 	/* LƯU THÔNG TIN CÁ NHÂN LÊN SERVER */
 	async function saveProfile() {
-	    // 1. Lấy userId lớn (tài khoản cha) từ localStorage
-	    const currentUserId = localStorage.getItem('userId');
-	    
-	    // Kiểm tra an toàn phòng hờ chưa chọn profile con nào
 	    if (!userProfile) {
-	        console.error("[SAVE PROFILE] Không có học sinh nào đang hoạt động để lưu!");
+	        console.warn("[SAVE PROFILE] Không có hồ sơ học sinh hoạt động để lưu!");
 	        return;
 	    }
-	
-	    // ĐỒNG BỘ TÊN BIẾN: Ép kiểu dữ liệu số cho số sao tích lũy theo chuẩn "totalStars" của SQLite
 	    userProfile.totalStars = Number(userProfile.stars) || Number(userProfile.totalStars) || 0;
 	    userProfile.streak = Number(userProfile.streak) || 1;
 	    userProfile.lastStudyDate = userProfile.lastStudyDate || 0;
 	
-	    // 2. Lưu nhanh xuống bộ nhớ cục bộ trình duyệt (Local Storage) để giữ trạng thái khi F5
-	    localStorage.setItem("userProfile", JSON.stringify(userProfile)); 
+	    localStorage.setItem("userProfile", JSON.stringify(userProfile));
 	
-	    // 3. ĐÓNG GÓI ĐÚNG CẤU TRÚC BACKEND YÊU CẦU: Bọc toàn bộ thông tin trong đối tượng "profileData"
 	    const wrapPayload = {
-	        userId: currentUserId,
+	        currentUserId: localStorage.getItem('userId'), // Đảm bảo truyền đúng userId cha
+	        userId: localStorage.getItem('userId'),
 	        profileData: {
-	            id: userProfile.id || userProfile._id || null, // ID định danh của học sinh con
+	            id: userProfile.id || userProfile._id || null,
 	            name: userProfile.name,
 	            school: userProfile.school || "Trường Tiểu Học",
 	            class: userProfile.class || "5A",
-	            avatar: userProfile.avatar || '🦊',            // Đảm bảo avatar mới đổi được truyền đi
-	            totalStars: userProfile.totalStars,            // Sử dụng chính xác trường totalStars
+	            avatar: userProfile.avatar || '🦊',
+	            totalStars: userProfile.totalStars,
 	            streak: userProfile.streak,
 	            lastStudyDate: userProfile.lastStudyDate
 	        }
 	    };
 	
-	    // Tự động phân tách Endpoint: Có ID -> Cập nhật (PUT), Chưa có ID -> Tạo mới (POST)
-	    // (Nếu Backend của bạn chỉ chạy duy nhất 1 đường POST /api/profiles cho cả 2 việc, bạn hãy đổi method sang 'POST' và url sang `${API_URL}/profiles`)
 	    const isUpdate = !!(userProfile.id || userProfile._id);
 	    const url = isUpdate ? `${API_URL}/profiles/${userProfile.id || userProfile._id}` : `${API_URL}/profiles`;
-	    const method = isUpdate ? 'PUT' : 'POST'; 
+	    const method = isUpdate ? 'PUT' : 'POST';
 	
-	    console.log(`[SAVE PROFILE] Đang gửi dữ liệu lên (${method}):`, wrapPayload);
-	
-	    try {
-	        // 4. Tiến hành gọi API
-	        const response = await fetch(url, {
-	            method: method, 
-	            headers: {
-	                ...commonHeaders,
-	                'Content-Type': 'application/json' // Đảm bảo luôn định dạng truyền dữ liệu JSON
-	            },
-	            body: JSON.stringify(wrapPayload) 
-	        });
-	
-	        const data = await response.json();
-	
-	        if (response.ok && data.success) {
-	            console.log("[SAVE PROFILE SUCCESS] Máy chủ SQLite đã lưu tiến trình thành công!");
-	            
-	            // Nếu là tạo mới học sinh, gán ngược ID do máy chủ cấp phát vào biến cục bộ
-	            if (!isUpdate && data.profile && data.profile.id) {
-	                userProfile.id = data.profile.id;
-	                localStorage.setItem("userProfile", JSON.stringify(userProfile));
-	            }
-	
-	            // Gọi hàm cập nhật lại Bảng xếp hạng (Leaderboard) nếu có
-	            if (typeof updateLeaderboardData === 'function') {
-	                updateLeaderboardData();
-	            }
-	        } else {
-	            // Log chi tiết thông báo từ Backend nếu gặp trục trặc lọc dữ liệu
-	            console.error("[SAVE PROFILE REJECTED] Server từ chối xử lý!");
-	            console.log("[CHI TIẾT LỖI TỪ SERVER]:", data.error || data);
-	        }
-	    } catch (e) { 
-	        console.error("Lỗi kết nối đường truyền mạng đến API Profiles:", e); 
-	    }
+	    // Thêm return trước fetch để bên ngoài await được
+	    return fetch(url, {
+	        method: method,
+	        headers: commonHeaders,
+	        body: JSON.stringify(wrapPayload)
+	    }).then(res => res.json())
+	      .then(data => {
+	          console.log("[SAVE PROFILE SUCCESS]", data);
+	      }).catch(e => {
+	          console.error("Lỗi lưu profile:", e);
+	      });
 	}
 
 	/* CẬP NHẬT LẠI LEADERBOARD TỪ SERVER */
 	async function updateLeaderboardData() {
-		try {
-			const res = await fetch(`${API_URL}/profiles`,{
-    headers: commonHeaders
-});
-			allProfiles = await res.json();
-			leaderboard = [...allProfiles];
-			if (document.getElementById("leaderboard-list")) renderLeaderboard();
-		} catch (e) {}
+	    try {
+	        const res = await fetch(`${API_URL}/profiles`, { headers: commonHeaders });
+	        const data = await res.json();
+	        
+	        let rawProfiles = [];
+	        if (data && data.profiles) {
+	            rawProfiles = data.profiles;
+	        } else if (Array.isArray(data)) {
+	            rawProfiles = data;
+	        }
+	
+	        // CHUẨN HÓA: Làm phẳng dữ liệu từ đối tượng profileData cấu trúc Server
+	        allProfiles = rawProfiles.map(p => {
+	            if (p.profileData) {
+	                return {
+	                    id: p.id || p._id || p.profileData.id,
+	                    name: p.profileData.name,
+	                    school: p.profileData.school,
+	                    class: p.profileData.class,
+	                    avatar: p.profileData.avatar,
+	                    totalStars: Number(p.profileData.totalStars) || 0,
+	                    streak: Number(p.profileData.streak) || 0
+	                };
+	            }
+	            return {
+	                ...p,
+	                totalStars: Number(p.totalStars) || 0
+	            };
+	        });
+	
+	        // SẮP XẾP: Thứ hạng từ cao xuống thấp theo số Sao
+	        allProfiles.sort((a, b) => b.totalStars - a.totalStars);
+	
+	        // Cập nhật vào mảng bảng xếp hạng và render lại giao diện
+	        leaderboard = [...allProfiles];
+	        
+	        // Lưu backup vào localStorage
+	        localStorage.setItem("allProfiles", JSON.stringify(allProfiles));
+	        localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+	
+	        if (document.getElementById("leaderboard-list")) {
+	            renderLeaderboard();
+	        }
+	        
+	        // Cập nhật lại thanh thông tin học sinh ở Trang chủ (nếu đang hiển thị)
+	        if (typeof renderMiniProfile === 'function') {
+	            renderMiniProfile();
+	        }
+	    } catch (e) {
+	        console.error("Lỗi cập nhật dữ liệu bảng xếp hạng:", e);
+	    }
 	}
 	
 	/* KIỂM TRA ĐĂNG NHẬP / CHỌN PROFILE */
@@ -1861,21 +1870,17 @@
 		// cập nhật Streak, Stars
 		if(userProfile) {
 			userProfile.totalStars = (userProfile.totalStars || 0) + stars;
-			updateStreak(); 
+			if (typeof updateStreak === "function") updateStreak();
 			saveProfile();
 
-			// BỔ SUNG: Cập nhật ngay vào bảng xếp hạng local để hiển thị ngay
-		    if (typeof updateLeaderboardData === "function") {
-		        updateLeaderboardData(); 
-		    } else {
-		        // Phương án dự phòng nếu API phản hồi chậm, cập nhật trực tiếp mảng local
-		        let pIdx = allProfiles.findIndex(p => p.id === userProfile.id || (p.profileData && p.profileData.id === userProfile.id));
-		        if (pIdx > -1) {
-		            if (allProfiles[pIdx].profileData) allProfiles[pIdx].profileData.totalStars = userProfile.totalStars;
-		            else allProfiles[pIdx].totalStars = userProfile.totalStars;
-		        }
-		        leaderboard = [...allProfiles];
-		    }
+			// 2. Định nghĩa chuỗi thực thi bất đồng bộ: Đợi lưu xong mới cập nhật bảng xếp hạng
+		    (async () => {
+		        // Đợi lệnh PUT/POST lên Server xử lý hoàn tất hoàn toàn
+		        await saveProfile(); 
+		        
+		        // Sau đó mới gọi kéo dữ liệu mới tinh từ database về
+		        await updateLeaderboardData();
+		    })();
 
 			// Đẩy lịch sử lên Server
 			fetch(`${API_URL}/history`, {
