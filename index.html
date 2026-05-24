@@ -275,15 +275,9 @@
 			padding: 15px;
 			box-sizing: border-box;
 
-			max-height: calc(100vh - 160px); /* Giới hạn chiều cao tối đa (trừ đi phần Header/Nav của bạn) */
+			max-height: calc(100vh - 220px); /* Giới hạn chiều cao tối đa (trừ đi phần Header/Nav của bạn) */
 		    overflow-y: auto; /* Tự động hiện thanh cuộn dọc riêng ở đây khi danh sách quá dài */
 		    padding-right: 8px; /* Tạo khoảng trống nhỏ để thanh cuộn không đè vào chữ */
-		}
-
-		/* 4. Giữ cho nút Xóa lịch sử luôn nằm cố định dưới đáy tab, không bị co nhỏ */
-		#tab-history button[onclick="clearHistory()"] {
-		    flex-shrink: 0;          /* Khóa cứng kích thước nút, không cho phép danh sách đè ép */
-		    margin-top: auto;        /* Đẩy nút dính chặt xuống đáy */
 		}
 
 		.tab-content::-webkit-scrollbar {
@@ -822,44 +816,6 @@
 	    align-items: center;             /* Căn giữa form đăng nhập theo chiều dọc */
 	    z-index: 9999;
 	}
-
-	/* 1. Thiết lập Tab Lịch sử thành Flexbox hướng dọc với chiều cao cố định */
-#tab-history {
-    height: calc(100vh - 280px) !important; /* Giới hạn chiều cao tab vừa khít khung nhìn app */
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    box-sizing: border-box !important;
-}
-
-/* 2. Cấu hình vùng chứa danh sách: Tự giãn và kích hoạt thanh cuộn cục bộ */
-#history-list {
-    flex: 1 1 auto !important;     /* Chiếm trọn vùng trống ở giữa */
-    overflow-y: auto !important;   /* Chỉ xuất hiện thanh cuộn riêng tại box này */
-    padding-right: 5px !important; /* Khoảng cách nhỏ tránh đè chữ */
-    margin-bottom: 10px !important;
-}
-
-/* 3. Khóa cứng nút XÓA LỊCH SỬ cố định dưới đáy tab, chống tuột, chống co nhỏ */
-#tab-history button[onclick="clearHistory()"] {
-    flex-shrink: 0 !important;     /* Không cho phép danh sách đè bẹp nút */
-    margin-top: auto !important;   /* Luôn bám chặt sát đáy */
-}
-
-/* 4. Tùy chọn làm mượt thanh cuộn riêng của Lịch sử học tập */
-#history-list::-webkit-scrollbar {
-    width: 6px;
-}
-#history-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-#history-list::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
-#history-list::-webkit-scrollbar-thumb:hover {
-    background: var(--duo-blue);
-}	
 
 </style>
 </head>
