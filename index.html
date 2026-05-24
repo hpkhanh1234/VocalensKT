@@ -2188,7 +2188,11 @@
 								<p style="font-size:0.85rem; color:#666; margin:0"><i>Nghĩa tiếng Việt:</i></p>
 								<p style="font-size:1.2rem; margin:0; font-weight:800; color:var(--duo-green)">${wordTranslation}</p>
 						   </div>`,
-					confirmButtonText: 'Tra từ khác'
+					confirmButtonText: 'Tra từ khác',
+					customClass: {
+				        popup: 'duo-dict-popup', // Áp dụng đồng bộ giao diện 3D phẳng
+				        confirmButton: 'swal2-styled swal2-confirm'
+				    }
 				}).then(r => r.isConfirmed && openDictionary());
 			}
 
