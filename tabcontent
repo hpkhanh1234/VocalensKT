@@ -31,7 +31,7 @@
             color: var(--duo-text); 
             -webkit-font-smoothing: antialiased; 
             transition: background 0.3s;
-            overflow-y: overlay; 
+            overflow-y: hidden; 
         }
         
         .app-container { 
@@ -278,6 +278,21 @@
 			max-height: calc(100vh - 160px); /* Giới hạn chiều cao tối đa (trừ đi phần Header/Nav của bạn) */
 		    overflow-y: auto; /* Tự động hiện thanh cuộn dọc riêng ở đây khi danh sách quá dài */
 		    padding-right: 8px; /* Tạo khoảng trống nhỏ để thanh cuộn không đè vào chữ */
+		}
+
+		.tab-content::-webkit-scrollbar {
+		    width: 6px;
+		}
+		.tab-content::-webkit-scrollbar-track {
+		    background: #f1f1f1;
+		    border-radius: 10px;
+		}
+		.tab-content::-webkit-scrollbar-thumb {
+		    background: #ccc;
+		    border-radius: 10px;
+		}
+		.tab-content::-webkit-scrollbar-thumb:hover {
+		    background: #1cb0f6; /* Đổi màu xanh theo tông màu của app khi rê chuột vào */
 		}
 		
 		.tab-item {
