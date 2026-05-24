@@ -817,6 +817,107 @@
 	    z-index: 9999;
 	}
 
+	/* ==========================================================================
+   TÙY BIẾN POPUP THÔNG BÁO TÀI KHOẢN (SWAL) CHUẨN PHONG CÁCH GAME 3D
+   ========================================================================== */
+
+	/* 1. Khung tổng thể của popup thông báo tài khoản */
+	.custom-account-popup {
+	    border: 3px solid #e5e5e5 !important;
+	    border-bottom: 7px solid #e5e5e5 !important; /* Đổ bóng chân 3D dày dặn đặc trưng */
+	    border-radius: 24px !important;              /* Bo góc sâu mềm mại thân thiện */
+	    padding: 2rem 1.5rem !important;
+	    font-family: 'Lexend', 'Be Vietnam Pro', sans-serif !important;
+	    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+	}
+	
+	/* 2. Định dạng Tiêu đề (Đăng nhập thành công,...) */
+	.custom-account-popup .swal2-title {
+	    font-family: 'Lexend', sans-serif !important;
+	    font-weight: 800 !important;
+	    color: #3c3c3c !important;
+	    font-size: 1.4rem !important;
+	    padding-top: 10px !important;
+	}
+	
+	/* 3. Định dạng Nội dung văn bản mô tả (nếu có) */
+	.custom-account-popup .swal2-html-container {
+	    font-size: 0.95rem !important;
+	    font-weight: 600 !important;
+	    color: #777777 !important;
+	    line-height: 1.5 !important;
+	}
+	
+	/* 4. Tùy biến nút bấm Xác nhận (Confirm) thành nút 3D lún khi nhấn */
+	.custom-account-popup .swal2-styled.swal2-confirm {
+	    background-color: var(--duo-green, #58cc02) !important; /* Màu xanh lá cây chủ đạo */
+	    border: none !important;
+	    border-bottom: 4px solid #46a302 !important; /* Chân đổ bóng của nút */
+	    border-radius: 16px !important;
+	    font-size: 0.9rem !important;
+	    font-weight: 800 !important;
+	    letter-spacing: 0.5px !important;
+	    padding: 10px 28px !important;
+	    text-transform: uppercase !important; /* Chữ in hoa thể thao */
+	    box-shadow: 0 4px 0 #46a302 !important;
+	    transition: all 0.1s ease !important;
+	}
+	
+	/* Hiệu ứng di chuột và nhấn nút */
+	.custom-account-popup .swal2-styled.swal2-confirm:hover {
+	    background-color: #61e002 !important;
+	}
+	
+	.custom-account-popup .swal2-styled.swal2-confirm:active {
+	    transform: translateY(4px) !important; /* Tạo hiệu ứng nút lún xuống khi click */
+	    border-bottom-width: 0px !important;
+	    box-shadow: none !important;
+	}
+	
+	/* 5. Tùy biến nút Hủy (Cancel) dạng viền nổi thanh lịch */
+	.custom-account-popup .swal2-styled.swal2-cancel {
+	    background-color: #ffffff !important;
+	    color: #afafaf !important;
+	    border: 2px solid #e5e5e5 !important;
+	    border-bottom: 4px solid #e5e5e5 !important;
+	    border-radius: 16px !important;
+	    font-size: 0.9rem !important;
+	    font-weight: 800 !important;
+	    padding: 10px 24px !important;
+	    text-transform: uppercase !important;
+	    transition: all 0.1s ease !important;
+	}
+	
+	.custom-account-popup .swal2-styled.swal2-cancel:hover {
+	    background-color: #f7f7f7 !important;
+	    color: #777777 !important;
+	}
+	
+	.custom-account-popup .swal2-styled.swal2-cancel:active {
+	    transform: translateY(2px) !important;
+	    border-bottom-width: 2px !important;
+	}
+	
+	/* 6. Đồng bộ màu sắc Icon thành công (Success) sang màu xanh rực rỡ hơn */
+	.custom-account-popup .swal2-icon.swal2-success {
+	    border-color: var(--duo-green, #58cc02) !important;
+	    color: var(--duo-green, #58cc02) !important;
+	}
+	
+	.custom-account-popup .swal2-icon.swal2-success [class^=swal2-success-line] {
+	    background-color: var(--duo-green, #58cc02) !important;
+	}
+	
+	.custom-account-popup .swal2-icon.swal2-success .swal2-success-ring {
+	    border: 4px solid rgba(88, 204, 2, 0.2) !important;
+	}
+	
+	/* Xóa viền mờ màu xanh mặc định (outline focus) của trình duyệt khi nhấp vào nút */
+	.custom-account-popup .swal2-styled:focus {
+	    box-shadow: none !important;
+	    outline: none !important;
+	}
+
 </style>
 </head>
 <body>
