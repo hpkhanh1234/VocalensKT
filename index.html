@@ -274,6 +274,10 @@
 			display: block !important; /* Không dùng display: none nữa */
 			padding: 15px;
 			box-sizing: border-box;
+
+			max-height: calc(100vh - 160px); /* Giới hạn chiều cao tối đa (trừ đi phần Header/Nav của bạn) */
+		    overflow-y: auto; /* Tự động hiện thanh cuộn dọc riêng ở đây khi danh sách quá dài */
+		    padding-right: 8px; /* Tạo khoảng trống nhỏ để thanh cuộn không đè vào chữ */
 		}
 		
 		.tab-item {
