@@ -1870,6 +1870,11 @@
 			showCancelButton: true,
 			cancelButtonText: 'Đóng',
 			showCloseButton: true,
+			customClass: {
+		        popup: 'duo-dict-popup', // Áp dụng đồng bộ giao diện 3D phẳng
+		        confirmButton: 'swal2-styled swal2-confirm',
+				denyButton: 'swal2-styled swal2-deny'
+		    }
             preConfirm: () => { 
                 const selectedTypes = Array.from(document.querySelectorAll('.sw-types:checked')).map(cb => cb.value);
                 if (selectedTypes.length === 0) { Swal.showValidationMessage('Bạn phải chọn ít nhất một loại câu hỏi!'); return false; }
