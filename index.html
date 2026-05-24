@@ -1865,6 +1865,19 @@
 			updateStreak(); 
 			saveProfile();
 
+			// BỔ SUNG: Cập nhật ngay vào bảng xếp hạng local để hiển thị ngay
+		    if (typeof updateLeaderboardData === "function") {
+		        updateLeaderboardData(); 
+		    } else {
+		        // Phương án dự phòng nếu API phản hồi chậm, cập nhật trực tiếp mảng local
+		        let pIdx = allProfiles.findIndex(p => p.id === userProfile.id || (p.profileData && p.profileData.id === userProfile.id));
+		        if (pIdx > -1) {
+		            if (allProfiles[pIdx].profileData) allProfiles[pIdx].profileData.totalStars = userProfile.totalStars;
+		            else allProfiles[pIdx].totalStars = userProfile.totalStars;
+		        }
+		        leaderboard = [...allProfiles];
+		    }
+
 			// Đẩy lịch sử lên Server
 			fetch(`${API_URL}/history`, {
 				method: 'POST',
