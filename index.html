@@ -1911,7 +1911,11 @@
             didOpen: () => startTimer(),
             willClose: () => clearInterval(autoTimer),
             preConfirm: () => { currentStep = (currentStep === steps.length - 1) ? 0 : currentStep + 1; updateSlide(); return false; },
-            preDeny: () => { currentStep = (currentStep === 0) ? steps.length - 1 : currentStep - 1; updateSlide(); return false; }
+            preDeny: () => { currentStep = (currentStep === 0) ? steps.length - 1 : currentStep - 1; updateSlide(); return false; },
+			customClass: {
+		        popup: 'duo-dict-popup', // Áp dụng đồng bộ giao diện 3D phẳng
+		        confirmButton: 'swal2-styled swal2-confirm'
+		    }
         });
     }
 
