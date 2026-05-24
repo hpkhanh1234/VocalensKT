@@ -268,44 +268,39 @@
 			transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); /* Hiệu ứng trượt mượt */
 		}
 
-		#tab-history {
-		    display: flex !important;
-		    flex-direction: column;
-		    /* Giới hạn chiều cao tối đa của toàn bộ tab (trừ đi phần khoảng trống xung quanh) */
-		    max-height: calc(100vh - 160px); 
-		    height: 100%;
-		}
-		
-		/* Khung chứa danh sách lịch sử: Tự co giãn và sinh thanh cuộn riêng */
-		#history-list {
-		    flex: 1;                 /* Tự động chiếm toàn bộ không gian còn trống */
-		    overflow-y: auto;        /* Chỉ hiển thị thanh cuộn dọc khi danh sách bị tràn */
-		    padding-right: 5px;      /* Khoảng hở nhỏ bên phải để thanh cuộn không đè lên chữ */
-		}
-
-		/* Tùy chọn làm đẹp thanh cuộn riêng của danh sách lịch sử (cho mượt giống Duolingo) */
-		#history-list::-webkit-scrollbar {
-		    width: 6px;
-		}
-		#history-list::-webkit-scrollbar-track {
-		    background: transparent;
-		}
-		#history-list::-webkit-scrollbar-thumb {
-		    background: #ccc;
-		    border-radius: 10px;
-		}
-		#history-list::-webkit-scrollbar-thumb:hover {
-		    background: var(--duo-blue);
-		}
-
 		/* Mỗi nội dung tab chiếm đúng 25% chiều rộng băng chuyền (tức là 100% khung nhìn) */
 		.tab-content {
 			width: 25%; 
 			display: block !important; /* Không dùng display: none nữa */
 			padding: 15px;
 			box-sizing: border-box;
+
+			max-height: calc(100vh - 160px); /* Giới hạn chiều cao tối đa (trừ đi phần Header/Nav của bạn) */
+		    overflow-y: auto; /* Tự động hiện thanh cuộn dọc riêng ở đây khi danh sách quá dài */
+		    padding-right: 8px; /* Tạo khoảng trống nhỏ để thanh cuộn không đè vào chữ */
 		}
 
+		/* 4. Giữ cho nút Xóa lịch sử luôn nằm cố định dưới đáy tab, không bị co nhỏ */
+		#tab-history button[onclick="clearHistory()"] {
+		    flex-shrink: 0;          /* Khóa cứng kích thước nút, không cho phép danh sách đè ép */
+		    margin-top: auto;        /* Đẩy nút dính chặt xuống đáy */
+		}
+
+		.tab-content::-webkit-scrollbar {
+		    width: 6px;
+		}
+		.tab-content::-webkit-scrollbar-track {
+		    background: #f1f1f1;
+		    border-radius: 10px;
+		}
+		.tab-content::-webkit-scrollbar-thumb {
+		    background: #ccc;
+		    border-radius: 10px;
+		}
+		.tab-content::-webkit-scrollbar-thumb:hover {
+		    background: var(--duo-blue); /* Đổi màu xanh theo tông màu của app khi rê chuột vào */
+		}
+		
 		.tab-item {
 			transition: all 0.2s ease;
 		}
