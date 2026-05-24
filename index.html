@@ -930,17 +930,9 @@
 					<div id="leaderboard-list"></div>
 				</div>
 				
-				<div class="tab-content" id="tab-history">
-				    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-				        <h3 style="font-family: var(--font-display); margin: 0; color: var(--duo-text);">Lịch sử học tập</h3>
-				        <button onclick="clearHistory()" style="background: none; border: none; color: var(--duo-red); font-family: var(--font-display); font-weight: 800; cursor: pointer; font-size: 0.85rem; padding: 5px 10px; border-radius: 8px;">
-				            <i class="fas fa-trash-alt" style="margin-right: 5px;"></i> Xóa lịch sử
-				        </button>
-				    </div>
-				
-				    <div id="history-list-wrapper" style="max-height: calc(100vh - 240px); overflow-y: auto; padding-right: 5px;">
-				        <div id="history-container"></div>
-				    </div>
+				<div id="tab-history" class="tab-content">
+					<div id="history-list"></div>
+					<button onclick="clearHistory()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--duo-red); font-weight:800; cursor:pointer;font-family: var(--font-display);">XÓA LỊCH SỬ</button>
 				</div>
 			</div>
 		</div>
@@ -2049,51 +2041,32 @@
 		}
 	}
 	
-	/* HÀM HIỂN THỊ LỊCH SỬ HỌC TẬP TỪ SERVER */
+	/* HÀM LẤY LỊCH SỬ HỌC TẬP */
+    /* LẤY LỊCH SỬ TỪ SERVER */
 	async function renderHistory() {
-	    // 🎯 Chỉ nhắm vào vùng chứa danh sách chứ không ghi đè nút xóa ở trên
-	    const container = document.getElementById('history-container');
-	    if (!container) return;
-	    
-	    if (!userProfile) {
-	        container.innerHTML = `<p style="text-align:center; color:#aaa; padding:20px;">Vui lòng chọn hồ sơ để xem lịch sử.</p>`;
-	        return;
-	    }
-	
-	    try {
-	        // Tải dữ liệu lịch sử từ API Server của bạn
-	        const res = await fetch(`${API_URL}/history?name=${encodeURIComponent(userProfile.name)}&school=${encodeURIComponent(userProfile.school)}`, {
-	            headers: commonHeaders
-	        });
-	        const historyData = await res.json();
-	
-	        if (!historyData || historyData.length === 0) {
-	            container.innerHTML = `<p style="text-align:center; color:#aaa; padding:30px; font-weight:600;">Chưa có lịch sử học tập. Hãy làm bài ngay nhé! 🚀</p>`;
-	            return;
-	        }
-	
-	        // Sắp xếp lịch sử mới nhất lên đầu (nếu server chưa sắp xếp)
-	        // Duyệt mảng đổ ra HTML các dòng lịch sử học tập
-	        container.innerHTML = historyData.map(item => `
-	            <div class="history-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid var(--duo-border);">
-	                <div style="text-align: left;">
-	                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--duo-text);">${item.title || 'Bài học'}</div>
-	                    <div style="font-size: 0.75rem; color: #999; margin-top: 3px;">📅 ${item.date || 'Chưa rõ thời gian'}</div>
-	                </div>
-	                <div style="text-align: right;">
-	                    <div style="font-weight: 800; color: var(--duo-green); font-size: 0.9rem;">🎯 Đúng ${item.correct}/${item.total}</div>
-	                    <div style="color: var(--duo-yellow); font-size: 0.8rem; font-weight: 800; margin-top: 2px;">
-	                        ${'★'.repeat(item.stars || 0)}${'☆'.repeat(5 - (item.stars || 0))}
-	                    </div>
-	                </div>
-	            </div>
-	        `).join('');
-	
-	    } catch (e) {
-	        console.error("Lỗi tải lịch sử học tập:", e);
-	        container.innerHTML = `<p style="text-align:center; color:var(--duo-red); padding:20px;">Không thể tải lịch sử từ hệ thống.</p>`;
-	    }
+		const container = document.getElementById("history-list");
+		if (!userProfile) return;
+
+		try {
+			const res = await fetch(`${API_URL}/history?name=${encodeURIComponent(userProfile.name)}&school=${encodeURIComponent(userProfile.school)}`,{
+    headers: commonHeaders
+});
+			const userHistory = await res.json();
+
+			container.innerHTML = userHistory.length === 0 ? 
+				`<p style='text-align:center; color:#aaa'>Chưa có lịch sử cho ${userProfile.name}</p>` : 
+				userHistory.map(h => {
+					const searchWord = h.title !== 'All' ? h.title : '';
+					return `
+						<div class="history-item" onclick="openDictionary('${searchWord}')" style="cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
+							<div><div style="font-weight:800; color:var(--duo-blue);">${h.title}</div><div style="font-size:0.7rem; color:#aaa">${h.date}</div></div>
+							<div style="text-align:right"><div style="font-weight:800; color:var(--duo-green);">${h.correct}/${h.total}</div><div style="color:var(--duo-yellow)">${'★'.repeat(h.stars)}${'☆'.repeat(5-h.stars)}</div></div>
+						</div>`;
+				}).join('');
+		} catch (e) { container.innerHTML = "<p>Lỗi tải lịch sử</p>"; }
 	}
+	
+	
     
 	/* HÀM LÂY BẢNG XẾP HẠNG */
     function renderLeaderboard() {
@@ -2117,54 +2090,22 @@
     }
 	
 	/* XÓA LỊCH SỬ TRÊN SERVER */
-	/* HÀM XỬ LÝ XÓA LỊCH SỬ TRÊN SERVER */
 	function clearHistory() {
-	    if (!userProfile) return;
-	    
-	    Swal.fire({
-	        title: 'Xóa lịch sử học tập?',
-	        text: `Toàn bộ kết quả bài làm của bạn sẽ bị xóa vĩnh viễn khỏi hệ thống!`,
-	        icon: 'warning',
-	        showCancelButton: true,
-	        confirmButtonColor: 'var(--duo-red)',
-	        cancelButtonColor: '#aaa',
-	        confirmButtonText: 'Đồng ý xóa',
-	        cancelButtonText: 'Hủy bỏ',
-	        customClass: {
-	            popup: 'duo-swal-popup-v3',
-	            confirmButton: 'btn-check'
-	        }
-	    }).then(async (result) => {
-	        if (result.isConfirmed) {
-	            try {
-	                Swal.showLoading();
-	                // Gọi API DELETE lên Server
-	                const response = await fetch(`${API_URL}/history`, {
-	                    method: 'DELETE',
-	                    headers: commonHeaders,
-	                    body: JSON.stringify({ 
-	                        name: userProfile.name, 
-	                        school: userProfile.school 
-	                    })
-	                });
-	                
-	                Swal.close();
-	                // Tải lại vùng giao diện lịch sử (lúc này sẽ hiện thông báo trống)
-	                renderHistory();
-	                
-	                Swal.fire({
-	                    title: 'Đã xóa xong! 🧼',
-	                    text: 'Lịch sử học tập của bạn đã được làm sạch.',
-	                    icon: 'success',
-	                    timer: 1500,
-	                    showConfirmButton: false
-	                });
-	            } catch (e) {
-	                console.error("Lỗi xóa lịch sử:", e);
-	                Swal.fire('Lỗi kết nối', 'Không thể gửi yêu cầu xóa lịch sử lên máy chủ.', 'error');
-	            }
-	        }
-	    });
+		if(!userProfile) return;
+		safeSwal({
+			title: 'Xóa lịch sử?', text: `Toàn bộ kết quả học tập của ${userProfile.name} sẽ bị xóa.`, icon: 'warning',
+			showCancelButton: true, confirmButtonText: 'Xóa ngay'
+		}).then(async (result) => {
+			if (result.isConfirmed) {
+				await fetch(`${API_URL}/history`, {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json', 
+        'ngrok-skip-browser-warning': '69420' },
+					body: JSON.stringify({ name: userProfile.name, school: userProfile.school })
+				});
+				renderHistory();
+			}
+		});
 	}
 
 	function nextQuest() {
