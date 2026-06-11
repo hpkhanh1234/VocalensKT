@@ -1095,11 +1095,19 @@
 			<button id="admin-excel-btn" class="btn-action btn-swing" onclick="document.getElementById('fileInput').click()" title="Nhập dữ liệu Excel" style="display: none;">
 				<i class="fas fa-file-excel" style="color: #1d6f42;"></i>
 			</button>
+			<button onclick="document.getElementById('examFileInput').click()" class="action-btn" style="background-color: #ff9600; color: white; border: none; padding: 15px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #cc7800; margin-top: 15px; width: 100%; font-family: 'Lexend', sans-serif;">
+			    📥 NẠP EXCEL ĐỀ THI
+			</button>
+			
+			<button onclick="openExamSelection()" class="action-btn" style="background-color: #ff4b4b; margin-top: 15px; width: 100%; border: none; padding: 15px; border-radius: 16px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #cc3c3c; font-size: 16px; font-family: 'Lexend', sans-serif;">
+			    📝 VÀO PHÒNG THI (20 PHÚT)
+			</button>
             <button class="btn-action btn-swing" onclick="startTutorial()" title="Hướng dẫn">?</button>
             <button class="btn-action btn-swing" onclick="openConfig()" title="Cấu hình"><i class="fas fa-cog"></i></button>
         	<button class="btn-action btn-swing" onclick="logoutAccount()" title="Đăng xuất"><i class="fas fa-forward"></i></button>
 		</div>
 		<input type="file" id="fileInput" hidden accept=".xlsx, .xls">
+		<input type="file" id="examFileInput" accept=".xlsx, .xls" style="display: none;">
     </div>
 
     <div id="menu-overlay">
